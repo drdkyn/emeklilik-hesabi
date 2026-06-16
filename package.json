@@ -1,7 +1,7 @@
 {
   "name": "emeklilik-hesaplama",
   "version": "1.0.0",
-  "description": "Turkish SGK Retirement Calculator - MÜKTEZA based",
+  "description": "Turkish SGK Retirement Calculator - Comprehensive retirement eligibility calculator",
   "private": true,
   "scripts": {
     "dev": "next dev",
