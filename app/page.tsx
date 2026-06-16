@@ -16,6 +16,7 @@ interface HesapSonucu {
   name: string;
   type: string;
   uygun: boolean;
+  gecerli: boolean;
   kosullar: KosulSatir[];
   notlar?: string;
 }
@@ -25,6 +26,7 @@ interface FormState {
   cinsiyet: 'erkek' | 'kadin';
   ilkIsGirisTarihi: string;
   priGunu: number;
+  borçlanmaDahil: boolean;
   askerlikBorclanlmasi: number;
   askerlikNedir: 'once' | 'sonra';
   statular: string[];
@@ -34,7 +36,6 @@ interface FormState {
 }
 
 function parseDate(str: string): Date {
-  // HTML date input: YYYY-MM-DD
   const [y, m, d] = str.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
@@ -49,6 +50,7 @@ export default function Home() {
     cinsiyet: 'erkek',
     ilkIsGirisTarihi: '',
     priGunu: 0,
+    borçlanmaDahil: false,
     askerlikBorclanlmasi: 0,
     askerlikNedir: 'sonra',
     statular: [],
@@ -61,13 +63,8 @@ export default function Home() {
   const [sonuclar, setSonuclar] = useState<HesapSonucu[] | null>(null);
   const [ozet, setOzet] = useState<{ yas: number; hizmetYili: number; toplamGun: number } | null>(null);
 
-  // Askerlik ÖNCE ise ilk işe giriş tarihini geri çek
   const hesaplananIlkIsGirisTarihi = (() => {
-    if (
-      form.askerlikNedir === 'once' &&
-      form.askerlikBorclanlmasi > 0 &&
-      form.ilkIsGirisTarihi
-    ) {
+    if (form.askerlikNedir === 'once' && form.askerlikBorclanlmasi > 0 && form.ilkIsGirisTarihi) {
       const d = parseDate(form.ilkIsGirisTarihi);
       d.setDate(d.getDate() - form.askerlikBorclanlmasi);
       return formatDate(d);
@@ -87,31 +84,27 @@ export default function Home() {
     setForm(prev => ({ ...prev, statular: [statu], malulBirimi: 'yok', malulDerece: '' }));
   };
 
-  const handleAskerlikChange = (nedir: 'once' | 'sonra') => {
+  const handleAskerlikChange = (nedir: 'once' | 'sonra') =>
     setForm(prev => ({ ...prev, askerlikNedir: nedir }));
-  };
 
-  const handleMalulBirimiChange = (birim: string) => {
+  const handleMalulBirimiChange = (birim: string) =>
     setForm(prev => ({ ...prev, malulBirimi: birim, malulDerece: '' }));
-  };
 
-  const handleMalulDereceChange = (derece: string) => {
+  const handleMalulDereceChange = (derece: string) =>
     setForm(prev => ({ ...prev, malulDerece: derece }));
-  };
 
-  const handleBagimaMuhtacChange = (value: boolean) => {
+  const handleBagimaMuhtacChange = (value: boolean) =>
     setForm(prev => ({ ...prev, bagimaMuhtac: value }));
-  };
+
+  const handleBorclanmaDahilChange = (dahil: boolean) =>
+    setForm(prev => ({ ...prev, borçlanmaDahil: dahil }));
 
   const handleHesapla = () => {
     const errs: Record<string, string> = {};
-
     if (!form.dogumTarihi) errs.dogumTarihi = 'Doğum tarihi zorunludur';
     if (!form.ilkIsGirisTarihi) errs.ilkIsGirisTarihi = 'İlk işe giriş tarihi zorunludur';
     if (form.statular.length === 0) errs.statular = 'Sigortalılık statüsü seçiniz';
-    if (form.malulBirimi === 'sk28/5' && !form.malulDerece) {
-      errs.malulDerece = 'Engelli derece seçiniz';
-    }
+    if (form.malulBirimi === 'sk28/5' && !form.malulDerece) errs.malulDerece = 'Engelli derece seçiniz';
 
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -120,11 +113,8 @@ export default function Home() {
     const ilkGirisTarihi = parseDate(form.ilkIsGirisTarihi);
     const status = form.statular[0] as '4a' | '4b' | '4c' | '2925';
 
-    // Malüllük tipini dönüştür
     const malulMap: Record<string, 'yok' | 'sk284' | 'sk285'> = {
-      'yok': 'yok',
-      'sk28/4': 'sk284',
-      'sk28/5': 'sk285',
+      'yok': 'yok', 'sk28/4': 'sk284', 'sk28/5': 'sk285',
     };
     const malulukTuru = malulMap[form.malulBirimi || 'yok'] || 'yok';
 
@@ -134,7 +124,7 @@ export default function Home() {
       cinsiyet: form.cinsiyet,
       ilkGirisTarihi,
       priGunu: form.priGunu,
-      borçlanmaOption: 'hariç',
+      borçlanmaOption: form.borçlanmaDahil ? 'dahil' : 'hariç',
       borçlanmaGunu: 0,
       askerlikGunu: form.askerlikBorclanlmasi,
       askerlikNedir: form.askerlikNedir,
@@ -143,38 +133,53 @@ export default function Home() {
       malulTarihi: null,
     });
 
-    // Yaş ve hizmet yılı
     const today = new Date();
     let yas = today.getFullYear() - dogumTarihi.getFullYear();
-    if (
-      today.getMonth() < dogumTarihi.getMonth() ||
-      (today.getMonth() === dogumTarihi.getMonth() && today.getDate() < dogumTarihi.getDate())
-    ) yas--;
+    if (today.getMonth() < dogumTarihi.getMonth() ||
+      (today.getMonth() === dogumTarihi.getMonth() && today.getDate() < dogumTarihi.getDate())) yas--;
 
     let hizmetYili = today.getFullYear() - ilkGirisTarihi.getFullYear();
-    if (
-      today.getMonth() < ilkGirisTarihi.getMonth() ||
-      (today.getMonth() === ilkGirisTarihi.getMonth() && today.getDate() < ilkGirisTarihi.getDate())
-    ) hizmetYili--;
+    if (today.getMonth() < ilkGirisTarihi.getMonth() ||
+      (today.getMonth() === ilkGirisTarihi.getMonth() && today.getDate() < ilkGirisTarihi.getDate())) hizmetYili--;
 
-    const toplamGun = form.priGunu + form.askerlikBorclanlmasi;
+    const toplamGun = form.borçlanmaDahil
+      ? form.priGunu
+      : form.priGunu + form.askerlikBorclanlmasi;
 
     setOzet({ yas, hizmetYili, toplamGun });
     setSonuclar(results);
 
-    // Mobilde form'dan sonuca scroll et
     setTimeout(() => {
       document.getElementById('sonuclar')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
 
-  const uygunSayisi = sonuclar?.filter(s => s.uygun).length ?? 0;
+  const malulSeçildi = form.malulBirimi && form.malulBirimi !== 'yok';
+
+  // Sonuçları sırala: malüllük seçildiyse disability önce, sonra normal ve yaştan
+  // gecerli olmayanlar her grubun sonuna atılır
+  const siraliSonuclar = sonuclar ? (() => {
+    const disability = sonuclar.filter(s => s.type === 'disability');
+    const normal = sonuclar.filter(s => s.type === 'normal');
+    const age = sonuclar.filter(s => s.type === 'age');
+
+    const siraGrup = (grup: HesapSonucu[]) => [
+      ...grup.filter(s => s.gecerli),
+      ...grup.filter(s => !s.gecerli),
+    ];
+
+    if (malulSeçildi) {
+      return [...siraGrup(disability), ...siraGrup(normal), ...siraGrup(age)];
+    }
+    return [...siraGrup(normal), ...siraGrup(age)];
+  })() : [];
+
+  const uygunSayisi = siraliSonuclar.filter(s => s.uygun).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-6xl mx-auto p-4">
 
-        {/* Başlık */}
         <div className="text-center py-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">SGK Emeklilik Hesaplama</h1>
           <p className="text-gray-500 text-sm mt-1">Normal, Yaştan ve Malüllük Emeklilik Şartları</p>
@@ -182,7 +187,7 @@ export default function Home() {
 
         <div className="flex flex-col lg:flex-row gap-6">
 
-          {/* SOL: FORM */}
+          {/* FORM */}
           <div className="w-full lg:w-80 shrink-0">
             <FormSection
               form={form}
@@ -194,14 +199,14 @@ export default function Home() {
               onMalulBirimiChange={handleMalulBirimiChange}
               onMalulDereceChange={handleMalulDereceChange}
               onBagimaMuhtacChange={handleBagimaMuhtacChange}
+              onBorclanmaDahilChange={handleBorclanmaDahilChange}
               onHesapla={handleHesapla}
             />
           </div>
 
-          {/* SAĞ: SONUÇLAR */}
+          {/* SONUÇLAR */}
           <div className="flex-1" id="sonuclar">
             {sonuclar === null ? (
-              /* Hesaplama yapılmadan önce */
               <div className="card flex flex-col items-center justify-center py-20 text-center">
                 <div className="text-5xl mb-4">📋</div>
                 <h2 className="text-xl font-semibold text-gray-700 mb-2">Bilgileri Girin</h2>
@@ -212,14 +217,14 @@ export default function Home() {
             ) : (
               <div className="space-y-4">
 
-                {/* ÖZET KARTLARI */}
+                {/* ÖZET */}
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard label="Yaş" value={ozet!.yas} />
                   <StatCard label="Hizmet Yılı" value={ozet!.hizmetYili} />
                   <StatCard label="Toplam Gün" value={ozet!.toplamGun} />
                 </div>
 
-                {/* UYGUN SONUÇ BANNER */}
+                {/* BANNER */}
                 {uygunSayisi > 0 ? (
                   <div className="bg-green-100 border-2 border-green-500 rounded-xl p-4 text-center">
                     <p className="text-green-800 font-bold text-lg">
@@ -234,63 +239,85 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* SONUÇ KARTLARI */}
-                {sonuclar.map((sonuc, idx) => (
-                  <div
-                    key={idx}
-                    className={`card ${sonuc.uygun ? 'card-success' : 'card-warning'}`}
-                  >
-                    {/* Kart Başlık */}
-                    <div className="flex items-start justify-between mb-4 pb-3 border-b border-opacity-30 border-gray-300">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{sonuc.uygun ? '✅' : '⏳'}</span>
-                        <h3 className={`font-semibold text-base ${sonuc.uygun ? 'text-green-900' : 'text-yellow-900'}`}>
-                          {sonuc.name}
-                        </h3>
+                {/* KARTLAR */}
+                {siraliSonuclar.map((sonuc, idx) => {
+                  const gecerliDegil = !sonuc.gecerli;
+                  return (
+                    <div
+                      key={idx}
+                      className={`card transition-all ${
+                        gecerliDegil
+                          ? 'opacity-40 border border-dashed border-gray-300 bg-gray-50'
+                          : sonuc.uygun
+                          ? 'card-success'
+                          : 'card-warning'
+                      }`}
+                    >
+                      {/* Başlık */}
+                      <div className="flex items-start justify-between mb-3 pb-3 border-b border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">
+                            {gecerliDegil ? '🚫' : sonuc.uygun ? '✅' : '⏳'}
+                          </span>
+                          <div>
+                            <h3 className={`font-semibold text-sm ${
+                              gecerliDegil ? 'text-gray-400' :
+                              sonuc.uygun ? 'text-green-900' : 'text-yellow-900'
+                            }`}>
+                              {sonuc.name}
+                            </h3>
+                            {gecerliDegil && (
+                              <p className="text-xs text-gray-400 mt-0.5">Giriş tarihinize göre bu kural uygulanmaz</p>
+                            )}
+                          </div>
+                        </div>
+                        {sonuc.uygun && !gecerliDegil && (
+                          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
+                            UYGUN
+                          </span>
+                        )}
+                        {sonuc.type === 'disability' && !gecerliDegil && (
+                          <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full shrink-0 ml-1">
+                            Malüllük
+                          </span>
+                        )}
                       </div>
-                      {sonuc.uygun && (
-                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
-                          UYGUN
-                        </span>
+
+                      {/* Koşullar */}
+                      <div className="space-y-2">
+                        {sonuc.kosullar.map((kosul, ki) => (
+                          <div key={ki}>
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="flex items-center gap-1.5 font-medium text-gray-700">
+                                <span className={kosul.basarili ? 'text-green-600' : 'text-gray-300'}>
+                                  {kosul.basarili ? '✓' : '○'}
+                                </span>
+                                {kosul.ad}
+                              </span>
+                              <span className={`font-mono font-bold ${kosul.basarili ? 'text-green-700' : 'text-gray-500'}`}>
+                                {kosul.sahip} / {kosul.gerekli || '—'}
+                              </span>
+                            </div>
+                            {kosul.gerekli && !isNaN(Number(kosul.sahip)) && !isNaN(Number(kosul.gerekli)) && (
+                              <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${kosul.basarili ? 'bg-green-500' : 'bg-yellow-400'}`}
+                                  style={{ width: `${Math.min(Math.round((Number(kosul.sahip) / Number(kosul.gerekli)) * 100), 100)}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {sonuc.notlar && (
+                        <p className="text-xs text-gray-500 mt-3 italic border-t border-gray-200 pt-2">
+                          💡 {sonuc.notlar}
+                        </p>
                       )}
                     </div>
-
-                    {/* Koşullar */}
-                    <div className="space-y-3">
-                      {sonuc.kosullar.map((kosul, ki) => (
-                        <div key={ki}>
-                          <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="flex items-center gap-2 font-medium text-gray-800">
-                              <span className={kosul.basarili ? 'text-green-600' : 'text-gray-400'}>
-                                {kosul.basarili ? '✓' : '○'}
-                              </span>
-                              {kosul.ad}
-                            </span>
-                            <span className={`font-mono font-bold text-xs ${kosul.basarili ? 'text-green-700' : 'text-gray-500'}`}>
-                              {kosul.sahip} / {kosul.gerekli || '—'}
-                            </span>
-                          </div>
-                          {/* İlerleme çubuğu */}
-                          {kosul.gerekli && kosul.gerekli !== '—' && !isNaN(Number(kosul.sahip)) && !isNaN(Number(kosul.gerekli)) && (
-                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${kosul.basarili ? 'bg-green-500' : 'bg-yellow-400'}`}
-                                style={{ width: `${Math.min(Math.round((Number(kosul.sahip) / Number(kosul.gerekli)) * 100), 100)}%` }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Notlar */}
-                    {sonuc.notlar && (
-                      <p className="text-xs text-gray-600 mt-3 italic border-t border-gray-200 pt-2">
-                        💡 {sonuc.notlar}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
 
               </div>
             )}
