@@ -220,12 +220,12 @@ export default function Home() {
                   <div
                     key={idx}
                     className={`border-2 rounded-lg p-4 ${
-                      res.eligible ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-gray-50'
+                      res.uygun ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-gray-50'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="font-bold text-lg text-gray-800">{res.title}</h3>
-                      {res.eligible && (
+                      {res.uygun && (
                         <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">
                           ✓ UYGUN
                         </span>
