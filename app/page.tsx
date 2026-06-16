@@ -16,7 +16,7 @@ interface HesapSonucu {
   name: string;
   type: string;
   uygun: boolean;
-  gecerli: boolean;
+
   kosullar: KosulSatir[];
   notlar?: string;
 }
@@ -162,16 +162,10 @@ export default function Home() {
     const disability = sonuclar.filter(s => s.type === 'disability');
     const normal = sonuclar.filter(s => s.type === 'normal');
     const age = sonuclar.filter(s => s.type === 'age');
-
-    const siraGrup = (grup: HesapSonucu[]) => [
-      ...grup.filter(s => s.gecerli),
-      ...grup.filter(s => !s.gecerli),
-    ];
-
     if (malulSeçildi) {
-      return [...siraGrup(disability), ...siraGrup(normal), ...siraGrup(age)];
+      return [...disability, ...normal, ...age];
     }
-    return [...siraGrup(normal), ...siraGrup(age)];
+    return [...normal, ...age];
   })() : [];
 
   const uygunSayisi = siraliSonuclar.filter(s => s.uygun).length;
@@ -241,13 +235,12 @@ export default function Home() {
 
                 {/* KARTLAR */}
                 {siraliSonuclar.map((sonuc, idx) => {
-                  const gecerliDegil = !sonuc.gecerli;
                   return (
                     <div
                       key={idx}
                       className={`card transition-all ${
-                        gecerliDegil
-                          ? 'opacity-40 border border-dashed border-gray-300 bg-gray-50'
+                        sonuc.type === 'disability'
+                          ? 'card-disability'
                           : sonuc.uygun
                           ? 'card-success'
                           : 'card-warning'
@@ -257,26 +250,23 @@ export default function Home() {
                       <div className="flex items-start justify-between mb-3 pb-3 border-b border-gray-200">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">
-                            {gecerliDegil ? '🚫' : sonuc.uygun ? '✅' : '⏳'}
+                            {sonuc.uygun ? '✅' : '⏳'}
                           </span>
                           <div>
                             <h3 className={`font-semibold text-sm ${
-                              gecerliDegil ? 'text-gray-400' :
                               sonuc.uygun ? 'text-green-900' : 'text-yellow-900'
                             }`}>
                               {sonuc.name}
                             </h3>
-                            {gecerliDegil && (
-                              <p className="text-xs text-gray-400 mt-0.5">Giriş tarihinize göre bu kural uygulanmaz</p>
-                            )}
+
                           </div>
                         </div>
-                        {sonuc.uygun && !gecerliDegil && (
+                        {sonuc.uygun && (
                           <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
                             UYGUN
                           </span>
                         )}
-                        {sonuc.type === 'disability' && !gecerliDegil && (
+                        {sonuc.type === 'disability' && (
                           <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full shrink-0 ml-1">
                             Malüllük
                           </span>

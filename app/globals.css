@@ -2,25 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-md p-6 border border-gray-100;
+    @apply bg-white rounded-xl shadow-sm p-4 border border-gray-100;
   }
   .card-success {
     @apply bg-green-50 border-2 border-green-400;
   }
   .card-warning {
-    @apply bg-yellow-50 border-2 border-yellow-400;
+    @apply bg-amber-50 border-2 border-amber-300;
+  }
+  .card-disability {
+    @apply bg-purple-50 border-2 border-purple-400;
   }
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    @apply w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white;
+  }
+  .label {
+    @apply block text-xs font-medium text-gray-600 mb-1;
+  }
+  .section-box {
+    @apply mb-3 p-3 rounded-lg border;
   }
 }

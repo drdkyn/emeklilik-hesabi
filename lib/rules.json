@@ -363,5 +363,175 @@
         "ageMan": 60
       }
     ]
+  },
+  "4c": {
+    "normal": [
+      {
+        "name": "08.09.1999 Öncesi",
+        "dateFrom": "1976-09-08",
+        "dateTo": "1999-09-08",
+        "serviceYears": 20,
+        "days": 7200,
+        "ageWoman": null,
+        "ageMan": null
+      },
+      {
+        "name": "09.09.1999-30.04.2008",
+        "dateFrom": "1999-09-09",
+        "dateTo": "2008-04-30",
+        "serviceYears": 25,
+        "days": 9000,
+        "ageWoman": 58,
+        "ageMan": 60
+      },
+      {
+        "name": "01.05.2008-31.12.2035",
+        "dateFrom": "2008-05-01",
+        "dateTo": "2035-12-31",
+        "serviceYears": null,
+        "days": 9000,
+        "ageWoman": 58,
+        "ageMan": 60
+      },
+      {
+        "name": "01.01.2036-31.12.2037",
+        "dateFrom": "2036-01-01",
+        "dateTo": "2037-12-31",
+        "serviceYears": null,
+        "days": 9000,
+        "ageWoman": 59,
+        "ageMan": 61
+      },
+      {
+        "name": "01.01.2038-31.12.2039",
+        "dateFrom": "2038-01-01",
+        "dateTo": "2039-12-31",
+        "serviceYears": null,
+        "days": 9000,
+        "ageWoman": 60,
+        "ageMan": 62
+      },
+      {
+        "name": "01.01.2040-31.12.2041",
+        "dateFrom": "2040-01-01",
+        "dateTo": "2041-12-31",
+        "serviceYears": null,
+        "days": 9000,
+        "ageWoman": 61,
+        "ageMan": 63
+      },
+      {
+        "name": "01.01.2042-31.12.2043",
+        "dateFrom": "2042-01-01",
+        "dateTo": "2043-12-31",
+        "serviceYears": null,
+        "days": 9000,
+        "ageWoman": 62,
+        "ageMan": 64
+      },
+      {
+        "name": "01.01.2044+",
+        "dateFrom": "2044-01-01",
+        "dateTo": "2099-12-31",
+        "serviceYears": null,
+        "days": 9000,
+        "ageWoman": 63,
+        "ageMan": 65
+      }
+    ],
+    "age": [
+      {
+        "name": "08.09.1999 Öncesi YAŞTAN",
+        "dateFrom": "1976-09-08",
+        "dateTo": "1999-09-08",
+        "serviceYears": 15,
+        "days": 5400,
+        "ageWoman": 56,
+        "ageMan": 58
+      },
+      {
+        "name": "09.09.1999-30.04.2008 YAŞTAN",
+        "dateFrom": "1999-09-09",
+        "dateTo": "2008-04-30",
+        "serviceYears": 15,
+        "days": 5400,
+        "ageWoman": 60,
+        "ageMan": 62
+      },
+      {
+        "name": "01.05.2008-31.12.2035",
+        "dateFrom": "2008-05-01",
+        "dateTo": "2035-12-31",
+        "serviceYears": null,
+        "days": 5400,
+        "ageWoman": 61,
+        "ageMan": 63
+      },
+      {
+        "name": "01.01.2036-31.12.2037",
+        "dateFrom": "2036-01-01",
+        "dateTo": "2037-12-31",
+        "serviceYears": null,
+        "days": 5400,
+        "ageWoman": 62,
+        "ageMan": 64
+      },
+      {
+        "name": "01.01.2038-31.12.2039",
+        "dateFrom": "2038-01-01",
+        "dateTo": "2039-12-31",
+        "serviceYears": null,
+        "days": 5400,
+        "ageWoman": 63,
+        "ageMan": 65
+      },
+      {
+        "name": "01.01.2040+",
+        "dateFrom": "2040-01-01",
+        "dateTo": "2099-12-31",
+        "serviceYears": null,
+        "days": 5400,
+        "ageWoman": 65,
+        "ageMan": 65
+      }
+    ],
+    "disability": [
+      {
+        "name": "27.04.2005 Öncesi Engelli — Yaşsız",
+        "dateFrom": "1976-09-08",
+        "dateTo": "2005-04-27",
+        "serviceYears": 15,
+        "days": 3600,
+        "degree": null,
+        "note": "27.04.2005 tarihinden önce göreve başlayan engelliler için yaş şartı aranmaz"
+      },
+      {
+        "name": "27.04.2005 Sonrası Engelli %40–%49",
+        "dateFrom": "2005-04-28",
+        "dateTo": "2099-12-31",
+        "serviceYears": 18,
+        "days": 4680,
+        "degree": "%40-%49",
+        "note": null
+      },
+      {
+        "name": "27.04.2005 Sonrası Engelli %50–%59",
+        "dateFrom": "2005-04-28",
+        "dateTo": "2099-12-31",
+        "serviceYears": 16,
+        "days": 4320,
+        "degree": "%50-%59",
+        "note": null
+      },
+      {
+        "name": "27.04.2005 Sonrası Engelli %60+",
+        "dateFrom": "2005-04-28",
+        "dateTo": "2099-12-31",
+        "serviceYears": 10,
+        "days": 1800,
+        "degree": "%60+",
+        "note": "Bakıma muhtaç olanlarda 10 yıl hizmet şartı aranmaz"
+      }
+    ]
   }
 }
