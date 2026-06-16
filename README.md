@@ -112,10 +112,9 @@ emeklilik-hesaplama/
    - Cinsiyet
    - İlk işe giriş tarihi
    - Prim günü
-   - Borçlanmış gün (isteğe bağlı)
-   - Maden günü (isteğe bağlı)
+   - Askerlik Borçlanması (isteğe bağlı)
 
-2. **Statü seç** (SSK, Bağ-Kur, Memur, Tarım, Maden)
+2. **Statü seç** (4/a SSK, 4/b Bağ-Kur, 4/c Memur, 2925 Tarım Sigortası)
 
 3. **"Hesapla" butonuna tıkla**
 
@@ -126,14 +125,14 @@ emeklilik-hesaplama/
 
 ## Veri Kaynakları 📚
 
-- **MÜKTEZA_01_02_2023.xlsb** - Kahramanamaraş SGK Merkezi
-- Tüm tabloları 78 sayfalık dosyadan çıkarılmıştır
+- **SGK Resmi Tablolar** - Emeklilik hesaplama kuralları
+- 5510 sayılı Sosyal Sigortalar ve Genel Sağlık Sigortası Kanunu
 
 ## Şartlar ve Koşullar ⚖️
 
 **ÖNEMLİ:** Bu araç bilgilendirme amaçlıdır. Kesin bilgi için SGK'ya başvurunuz.
 
-- Hesaplamalar MÜKTEZA'daki tablolara dayanmaktadır
+- Hesaplamalar 5510 SK ve ilgili yönetmeliklere dayanmaktadır
 - Her hesaplamadan bir kaydı tutunuz
 - SGK kaydında farklılık varsa resmi kayıtlar geçerlidir
 
