@@ -1,3 +1,5 @@
+import { getMalullikSaritlari, getMalulDereceleri } from './maluluk-tablosu';
+
 export interface EmeklilikKosulu {
   adi: string;
   kosullar: {
@@ -61,7 +63,9 @@ export const hesaplaEmeklilik = (
   askerlikNedir: 'once' | 'sonra',
   cinsiyet: 'erkek' | 'kadin',
   statular: string[],
-  malulBirimi?: string
+  malulBirimi?: string,
+  malulDerece?: string,
+  bagimaMuhtac?: boolean
 ): HesaplamaResultati => {
   const dogumTar = parseDate(dogumTarihi);
   const originalIlkGirisTar = parseDate(ilkIsGirisTarihi);
@@ -146,6 +150,42 @@ export const hesaplaEmeklilik = (
         hizmetYili >= 15 &&
         priGunleri >= 3600,
     });
+
+    // ========== 4/a MALÜLÜK EMEKLİLİĞİ (SK 28/5) ==========
+    // İşe girdikten sonra malül olan sigortalılar
+    if (malulBirimi === 'sk28/5' && malulDerece && statular.includes('4a')) {
+      const malulSarti = getMalullikSaritlari('4a', 'sk28/5', malulDerece);
+      
+      if (malulSarti) {
+        let gerekliHizmetYili = malulSarti.hizmetYili;
+        let gerekliGunSayisi = malulSarti.gunSayisi;
+
+        // Bakıma muhtaçlık durumunda şartlar azalır
+        if (bagimaMuhtac) {
+          gerekliHizmetYili = 10; // Bakıma muhtaç ise 10 yıl yeterli
+          gerekliGunSayisi = Math.floor(malulSarti.gunSayisi * 0.7); // Gün sayısı %70'i
+        }
+
+        emeklilikKosullari.push({
+          adi: `4/a (SSK) - Malüllük Emekliği (${malulDerece})${bagimaMuhtac ? ' - Bakıma Muhtaç' : ''}`,
+          kosullar: [
+            {
+              ad: 'Hizmet Yılı',
+              gerekli: gerekliHizmetYili,
+              sahip: hizmetYili,
+              basarili: hizmetYili >= gerekliHizmetYili,
+            },
+            {
+              ad: `Prim Günü (${gerekliGunSayisi} gün)`,
+              gerekli: gerekliGunSayisi,
+              sahip: priGunleri,
+              basarili: priGunleri >= gerekliGunSayisi,
+            },
+          ],
+          tamamlandi: hizmetYili >= gerekliHizmetYili && priGunleri >= gerekliGunSayisi,
+        });
+      }
+    }
   }
 
   // ========== 4/b (Bağ-Kur) ==========
@@ -232,6 +272,40 @@ export const hesaplaEmeklilik = (
     }
   }
 
+  // ========== 4/b MALÜLÜK EMEKLİLİĞİ (SK 28/5) ==========
+  if (malulBirimi === 'sk28/5' && malulDerece && statular.includes('4b')) {
+    const malulSarti = getMalullikSaritlari('4b', 'sk28/5', malulDerece);
+    
+    if (malulSarti) {
+      let gerekliHizmetYili = malulSarti.hizmetYili;
+      let gerekliGunSayisi = malulSarti.gunSayisi;
+
+      if (bagimaMuhtac) {
+        gerekliHizmetYili = 10;
+        gerekliGunSayisi = Math.floor(malulSarti.gunSayisi * 0.7);
+      }
+
+      emeklilikKosullari.push({
+        adi: `4/b (Bağ-Kur) - Malüllük Emekliği (${malulDerece})${bagimaMuhtac ? ' - Bakıma Muhtaç' : ''}`,
+        kosullar: [
+          {
+            ad: 'Hizmet Yılı',
+            gerekli: gerekliHizmetYili,
+            sahip: hizmetYili,
+            basarili: hizmetYili >= gerekliHizmetYili,
+          },
+          {
+            ad: `Prim Günü (${gerekliGunSayisi} gün)`,
+            gerekli: gerekliGunSayisi,
+            sahip: priGunleri,
+            basarili: priGunleri >= gerekliGunSayisi,
+          },
+        ],
+        tamamlandi: hizmetYili >= gerekliHizmetYili && priGunleri >= gerekliGunSayisi,
+      });
+    }
+  }
+
   // ========== 4/c (Memur) ==========
   if (statular.includes('4c')) {
     // EYT Yaşsız
@@ -312,6 +386,40 @@ export const hesaplaEmeklilik = (
         ],
         tamamlandi:
           yas >= (cinsiyet === 'erkek' ? 60 : 58) && priGunleri >= 9000,
+      });
+    }
+  }
+
+  // ========== 4/c MALÜLÜK EMEKLİLİĞİ (SK 28/5) ==========
+  if (malulBirimi === 'sk28/5' && malulDerece && statular.includes('4c')) {
+    const malulSarti = getMalullikSaritlari('4c', 'sk28/5', malulDerece);
+    
+    if (malulSarti) {
+      let gerekliHizmetYili = malulSarti.hizmetYili;
+      let gerekliGunSayisi = malulSarti.gunSayisi;
+
+      if (bagimaMuhtac) {
+        gerekliHizmetYili = 10;
+        gerekliGunSayisi = Math.floor(malulSarti.gunSayisi * 0.7);
+      }
+
+      emeklilikKosullari.push({
+        adi: `4/c (Memur) - Malüllük Emekliği (${malulDerece})${bagimaMuhtac ? ' - Bakıma Muhtaç' : ''}`,
+        kosullar: [
+          {
+            ad: 'Hizmet Yılı',
+            gerekli: gerekliHizmetYili,
+            sahip: hizmetYili,
+            basarili: hizmetYili >= gerekliHizmetYili,
+          },
+          {
+            ad: `Prim Günü (${gerekliGunSayisi} gün)`,
+            gerekli: gerekliGunSayisi,
+            sahip: priGunleri,
+            basarili: priGunleri >= gerekliGunSayisi,
+          },
+        ],
+        tamamlandi: hizmetYili >= gerekliHizmetYili && priGunleri >= gerekliGunSayisi,
       });
     }
   }

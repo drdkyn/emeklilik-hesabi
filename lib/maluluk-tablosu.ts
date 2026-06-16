@@ -33,16 +33,10 @@ export const malullik4a: MalullikTablosu = {
       aciklama: 'Çalışma gücü kayıp oranı %50-%59 arası',
     },
     {
-      derece: '%60-%69',
-      hizmetYili: 20,
-      gunSayisi: 5375,
-      aciklama: 'Çalışma gücü kayıp oranı %60-%69 arası',
-    },
-    {
-      derece: '%70+',
+      derece: '%60+',
       hizmetYili: 20,
       gunSayisi: 5450,
-      aciklama: 'Çalışma gücü kayıp oranı %70 ve üzeri',
+      aciklama: 'Çalışma gücü kayıp oranı %60 ve üzeri',
     },
   ],
 };

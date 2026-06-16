@@ -17,6 +17,7 @@ export default function Home() {
     statular: ['4a'] as string[],
     malulBirimi: 'yok',
     malulDerece: '',
+    bagimaMuhtac: false, // Bakıma muhtaçlık
   });
 
   const [hesaplananIlkIsGirisTarihi, setHesaplananIlkIsGirisTarihi] = useState<string>('');
@@ -98,6 +99,10 @@ export default function Home() {
     setForm({ ...form, malulDerece: derece });
   };
 
+  const handleBagimaMuhtacChange = (value: boolean) => {
+    setForm({ ...form, bagimaMuhtac: value });
+  };
+
   const sonuc = useMemo(
     () =>
       hesaplaEmeklilik(
@@ -108,7 +113,9 @@ export default function Home() {
         form.askerlikNedir,
         form.cinsiyet,
         form.statular,
-        form.ilkIsGirisOnceEngelliMi
+        form.malulBirimi,
+        form.malulDerece,
+        form.bagimaMuhtac
       ),
     [form]
   );
@@ -152,6 +159,7 @@ export default function Home() {
               onAskerlikChange={handleAskerlikChange}
               onMalulBirimiChange={handleMalulBirimiChange}
               onMalulDereceChange={handleMalulDereceChange}
+              onBagimaMuhtacChange={handleBagimaMuhtacChange}
               onHesapla={handleHesapla}
             />
           </div>

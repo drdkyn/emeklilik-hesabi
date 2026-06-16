@@ -11,6 +11,7 @@ interface FormSectionProps {
     statular: string[];
     malulBirimi?: string;
     malulDerece?: string;
+    bagimaMuhtac?: boolean; // Bakıma muhtaçlık
   };
   hesaplananIlkIsGirisTarihi?: string;
   errors: Record<string, string>;
@@ -19,6 +20,7 @@ interface FormSectionProps {
   onAskerlikChange: (nedir: 'once' | 'sonra') => void;
   onMalulBirimiChange: (birim: string) => void;
   onMalulDereceChange?: (derece: string) => void;
+  onBagimaMuhtacChange?: (value: boolean) => void; // Yeni handler
   onHesapla: () => void;
 }
 
@@ -31,6 +33,7 @@ export default function FormSection({
   onAskerlikChange,
   onMalulBirimiChange,
   onMalulDereceChange,
+  onBagimaMuhtacChange,
   onHesapla,
 }: FormSectionProps) {
   return (
@@ -116,8 +119,7 @@ export default function FormSection({
                       <>
                         <option value="%40-%49">%40 - %49 (Hafif)</option>
                         <option value="%50-%59">%50 - %59 (Orta)</option>
-                        <option value="%60-%69">%60 - %69 (Ağır)</option>
-                        <option value="%70+">%70 ve üzeri (Çok Ağır)</option>
+                        <option value="%60+">%60 ve üzeri (Ağır)</option>
                       </>
                     )}
                     {form.statular[0] === '4b' && (
@@ -135,6 +137,32 @@ export default function FormSection({
                       </>
                     )}
                   </select>
+
+                  {/* BAKIMA MUHTAÇLIK CHECKBOX - SK28/5 seçiliyse göster */}
+                  {form.malulBirimi === 'sk28/5' && form.malulDerece && (
+                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.bagimaMuhtac || false}
+                          onChange={(e) => onBagimaMuhtacChange?.(e.target.checked)}
+                          className="w-4 h-4 text-red-600 rounded border-red-300"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          <strong>Bakıma muhtaç mıyım?</strong>
+                          <span className="text-xs text-gray-500 block mt-1">
+                            (Başkasının bakımına muhtaç olduğunuzda işaretleyin)
+                          </span>
+                        </span>
+                      </label>
+                      {form.bagimaMuhtac && (
+                        <p className="text-xs text-red-700 mt-2 italic">
+                          ⚠️ Bakıma muhtaçlık durumunda sigortalılık süresi şartı azalır.
+                          Tüm şartları doktor raporu ve SGK ile kontrol edin.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <p className="text-xs text-yellow-700 mt-2">
                     💡 Dereceniz Bölge Sağlık Kurulu raporunuzda belirtilmelidir.
                   </p>
