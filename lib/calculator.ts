@@ -22,13 +22,36 @@ export interface HesaplamaResultati {
   } | null;
 }
 
-const EYT_SINIR_TARIHI = new Date(1999, 8, 8);
+// ============= CONSTANTS & HELPERS =============
+
+const EYT_SINIR_TARIHI = new Date(1999, 8, 8); // 08.09.1999 DAHİL
+
+// Dönem-bazlı gün tablosu (5510 SK 28/4)
+const ENGELLI_GUN_TABLOSU: { basla: Date; bitis?: Date; gun: number }[] = [
+  { basla: new Date(1900, 0, 1), bitis: new Date(2008, 9, 30), gun: 3600 },
+  { basla: new Date(2008, 9, 1), bitis: new Date(2008, 11, 31), gun: 3700 },
+  { basla: new Date(2009, 0, 1), bitis: new Date(2009, 11, 31), gun: 3800 },
+  { basla: new Date(2010, 0, 1), bitis: new Date(2010, 11, 31), gun: 3900 },
+  { basla: new Date(2011, 0, 1), bitis: undefined, gun: 3960 },
+];
 
 export const parseDate = (str: string): Date => new Date(str);
 
 export const dateFark = (d1: Date, d2: Date): number => {
   return Math.floor((d2.getTime() - d1.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
 };
+
+const getEngelliGun = (tarih: Date): number => {
+  for (const tab of ENGELLI_GUN_TABLOSU) {
+    const bitisTarihi = tab.bitis || new Date(2099, 11, 31);
+    if (tarih >= tab.basla && tarih <= bitisTarihi) {
+      return tab.gun;
+    }
+  }
+  return 3960;
+};
+
+// ============= MAIN CALCULATOR =============
 
 export const hesaplaEmeklilik = (
   dogumTarihi: string,
@@ -59,8 +82,9 @@ export const hesaplaEmeklilik = (
 
   const emeklilikKosullari: EmeklilikKosulu[] = [];
 
-  // 4/a SSK
+  // ========== 4/a (SSK) ==========
   if (statular.includes('4a')) {
+    // EYT Yaşsız
     if (ilkGirisTar <= EYT_SINIR_TARIHI) {
       emeklilikKosullari.push({
         adi: '4/a (SSK) - EYT Yaşsız',
@@ -83,6 +107,7 @@ export const hesaplaEmeklilik = (
       });
     }
 
+    // Yaştan Emeklilik
     emeklilikKosullari.push({
       adi: '4/a (SSK) - Yaştan Emeklilik',
       kosullar: [
@@ -135,8 +160,9 @@ export const hesaplaEmeklilik = (
     }
   }
 
-  // 4/b
+  // ========== 4/b (Bağ-Kur) ==========
   if (statular.includes('4b')) {
+    // EYT Yaşsız
     if (ilkGirisTar <= EYT_SINIR_TARIHI) {
       emeklilikKosullari.push({
         adi: '4/b (Bağ-Kur) - EYT Yaşsız',
@@ -159,10 +185,68 @@ export const hesaplaEmeklilik = (
           priGunleri >= (cinsiyet === 'erkek' ? 9000 : 7200),
       });
     }
+
+    // 5510 SK Geçici 9/1 (09.09.1999 - 30.04.2008)
+    if (
+      ilkGirisTar > EYT_SINIR_TARIHI &&
+      ilkGirisTar < new Date(2008, 4, 1)
+    ) {
+      emeklilikKosullari.push({
+        adi: '4/b - 5510 SK Geçici 9/1 (09.09.1999-30.04.2008)',
+        kosullar: [
+          {
+            ad: 'Yaş',
+            gerekli: cinsiyet === 'erkek' ? 60 : 58,
+            sahip: yas,
+            basarili: yas >= (cinsiyet === 'erkek' ? 60 : 58),
+          },
+          {
+            ad: 'Hizmet Yılı',
+            gerekli: 25,
+            sahip: hizmetYili,
+            basarili: hizmetYili >= 25,
+          },
+          {
+            ad: 'Prim Günü',
+            gerekli: 9000,
+            sahip: priGunleri,
+            basarili: priGunleri >= 9000,
+          },
+        ],
+        tamamlandi:
+          yas >= (cinsiyet === 'erkek' ? 60 : 58) &&
+          hizmetYili >= 25 &&
+          priGunleri >= 9000,
+      });
+    }
+
+    // 5510 SK Md.28/2 (01.05.2008+)
+    if (ilkGirisTar >= new Date(2008, 4, 1)) {
+      emeklilikKosullari.push({
+        adi: '4/b - 5510 SK Md.28/2 (01.05.2008+)',
+        kosullar: [
+          {
+            ad: 'Yaş',
+            gerekli: cinsiyet === 'erkek' ? 60 : 58,
+            sahip: yas,
+            basarili: yas >= (cinsiyet === 'erkek' ? 60 : 58),
+          },
+          {
+            ad: 'Prim Günü',
+            gerekli: 9000,
+            sahip: priGunleri,
+            basarili: priGunleri >= 9000,
+          },
+        ],
+        tamamlandi:
+          yas >= (cinsiyet === 'erkek' ? 60 : 58) && priGunleri >= 9000,
+      });
+    }
   }
 
-  // 4/c
+  // ========== 4/c (Memur) ==========
   if (statular.includes('4c')) {
+    // EYT Yaşsız
     if (ilkGirisTar <= EYT_SINIR_TARIHI) {
       emeklilikKosullari.push({
         adi: '4/c (Memur) - EYT Yaşsız',
@@ -185,9 +269,66 @@ export const hesaplaEmeklilik = (
           priGunleri >= (cinsiyet === 'erkek' ? 9000 : 7200),
       });
     }
+
+    // İstekle Emeklilik (09.09.1999 - 30.04.2008)
+    if (
+      ilkGirisTar > EYT_SINIR_TARIHI &&
+      ilkGirisTar < new Date(2008, 4, 1)
+    ) {
+      emeklilikKosullari.push({
+        adi: '4/c - İstekle Emeklilik (09.09.1999-30.04.2008)',
+        kosullar: [
+          {
+            ad: 'Yaş',
+            gerekli: cinsiyet === 'erkek' ? 60 : 58,
+            sahip: yas,
+            basarili: yas >= (cinsiyet === 'erkek' ? 60 : 58),
+          },
+          {
+            ad: 'Hizmet Yılı',
+            gerekli: 25,
+            sahip: hizmetYili,
+            basarili: hizmetYili >= 25,
+          },
+          {
+            ad: 'Prim Günü',
+            gerekli: 9000,
+            sahip: priGunleri,
+            basarili: priGunleri >= 9000,
+          },
+        ],
+        tamamlandi:
+          yas >= (cinsiyet === 'erkek' ? 60 : 58) &&
+          hizmetYili >= 25 &&
+          priGunleri >= 9000,
+      });
+    }
+
+    // 5510 SK Md.28/2 (01.05.2008+)
+    if (ilkGirisTar >= new Date(2008, 4, 1)) {
+      emeklilikKosullari.push({
+        adi: '4/c - 5510 SK Md.28/2 (01.05.2008+)',
+        kosullar: [
+          {
+            ad: 'Yaş',
+            gerekli: cinsiyet === 'erkek' ? 60 : 58,
+            sahip: yas,
+            basarili: yas >= (cinsiyet === 'erkek' ? 60 : 58),
+          },
+          {
+            ad: 'Prim Günü',
+            gerekli: 9000,
+            sahip: priGunleri,
+            basarili: priGunleri >= 9000,
+          },
+        ],
+        tamamlandi:
+          yas >= (cinsiyet === 'erkek' ? 60 : 58) && priGunleri >= 9000,
+      });
+    }
   }
 
-  // 2925
+  // ========== 2925 (Tarım Sigortası) ==========
   if (statular.includes('2925')) {
     emeklilikKosullari.push({
       adi: '2925 (Tarım Sigortası) - Emeklilik',
@@ -218,6 +359,7 @@ export const hesaplaEmeklilik = (
     });
   }
 
+  // ========== YAKIN EMEKLİLİK ==========
   let yakinEmeklilik: {
     adi: string;
     tarih: Date;
@@ -250,24 +392,4 @@ export const hesaplaEmeklilik = (
     emeklilikKosullari,
     yakinEmeklilik,
   };
-};
-
-// === ENGELLI EMEKLILIK DESTEĞI (4/a) ===
-// Dönem-bazlı gün tablosu (5510 SK 28/4)
-const ENGELLI_GUN_TABLOSU: { basla: Date; bitis?: Date; gun: number }[] = [
-  { basla: new Date(1900, 0, 1), bitis: new Date(2008, 9, 30), gun: 3600 },
-  { basla: new Date(2008, 9, 1), bitis: new Date(2008, 11, 31), gun: 3700 },
-  { basla: new Date(2009, 0, 1), bitis: new Date(2009, 11, 31), gun: 3800 },
-  { basla: new Date(2010, 0, 1), bitis: new Date(2010, 11, 31), gun: 3900 },
-  { basla: new Date(2011, 0, 1), bitis: undefined, gun: 3960 },
-];
-
-const getEngelliGun = (tarih: Date): number => {
-  for (const tab of ENGELLI_GUN_TABLOSU) {
-    const bitisTarihi = tab.bitis || new Date(2099, 11, 31);
-    if (tarih >= tab.basla && tarih <= bitisTarihi) {
-      return tab.gun;
-    }
-  }
-  return 3960;
 };
