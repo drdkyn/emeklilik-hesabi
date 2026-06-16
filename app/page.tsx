@@ -1,256 +1,302 @@
 'use client';
 
 import { useState } from 'react';
-import { calculateRetirement, CalculationResult } from '@/lib/calculator';
+import FormSection from '@/components/FormSection';
+import StatCard from '@/components/StatCard';
+import { calculateRetirementOptionsDB } from '@/lib/calculator-db';
+
+interface KosulSatir {
+  ad: string;
+  gerekli: string;
+  sahip: string;
+  basarili: boolean;
+}
+
+interface HesapSonucu {
+  name: string;
+  type: string;
+  uygun: boolean;
+  kosullar: KosulSatir[];
+  notlar?: string;
+}
+
+interface FormState {
+  dogumTarihi: string;
+  cinsiyet: 'erkek' | 'kadin';
+  ilkIsGirisTarihi: string;
+  priGunu: number;
+  askerlikBorclanlmasi: number;
+  askerlikNedir: 'once' | 'sonra';
+  statular: string[];
+  malulBirimi?: string;
+  malulDerece?: string;
+  bagimaMuhtac?: boolean;
+}
+
+function parseDate(str: string): Date {
+  // HTML date input: YYYY-MM-DD
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
 
 export default function Home() {
-  const [formData, setFormData] = useState({
-    birthDate: '',
-    entryDate: '',
-    gender: 'erkek' as 'erkek' | 'kadin',
-    status: '4a' as string,
-    premiumDays: 0,
-    maluluk: 'yok' as 'yok' | 'sk284' | 'sk285',
-    degree: '' as '' | '%40-%49' | '%50-%59' | '%60+',
+  const [form, setForm] = useState<FormState>({
+    dogumTarihi: '',
+    cinsiyet: 'erkek',
+    ilkIsGirisTarihi: '',
+    priGunu: 0,
+    askerlikBorclanlmasi: 0,
+    askerlikNedir: 'sonra',
+    statular: [],
+    malulBirimi: 'yok',
+    malulDerece: '',
+    bagimaMuhtac: false,
   });
 
-  const [result, setResult] = useState<CalculationResult | null>(null);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sonuclar, setSonuclar] = useState<HesapSonucu[] | null>(null);
+  const [ozet, setOzet] = useState<{ yas: number; hizmetYili: number; toplamGun: number } | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Askerlik ÖNCE ise ilk işe giriş tarihini geri çek
+  const hesaplananIlkIsGirisTarihi = (() => {
+    if (
+      form.askerlikNedir === 'once' &&
+      form.askerlikBorclanlmasi > 0 &&
+      form.ilkIsGirisTarihi
+    ) {
+      const d = parseDate(form.ilkIsGirisTarihi);
+      d.setDate(d.getDate() - form.askerlikBorclanlmasi);
+      return formatDate(d);
+    }
+    return undefined;
+  })();
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setForm(prev => ({
+      ...prev,
+      [name]: name === 'priGunu' || name === 'askerlikBorclanlmasi' ? Number(value) : value,
+    }));
   };
 
-  const handleCalculate = () => {
-    const errs: string[] = [];
+  const handleCheckbox = (statu: string) => {
+    setForm(prev => ({ ...prev, statular: [statu], malulBirimi: 'yok', malulDerece: '' }));
+  };
 
-    if (!formData.birthDate) errs.push('Doğum tarihi zorunludur (DD.MM.YYYY)');
-    if (!formData.entryDate) errs.push('İlk işe giriş tarihi zorunludur (DD.MM.YYYY)');
-    if (!formData.status) errs.push('Statü seçiniz');
+  const handleAskerlikChange = (nedir: 'once' | 'sonra') => {
+    setForm(prev => ({ ...prev, askerlikNedir: nedir }));
+  };
 
-    // Tarih validasyon
-    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
-    if (formData.birthDate && !dateRegex.test(formData.birthDate)) {
-      errs.push('Doğum tarihi format: DD.MM.YYYY');
-    }
-    if (formData.entryDate && !dateRegex.test(formData.entryDate)) {
-      errs.push('İlk işe giriş tarihi format: DD.MM.YYYY');
-    }
+  const handleMalulBirimiChange = (birim: string) => {
+    setForm(prev => ({ ...prev, malulBirimi: birim, malulDerece: '' }));
+  };
 
-    if (formData.maluluk === 'sk285' && !formData.degree) {
-      errs.push('SK 28/5 için engel derecesi seçiniz');
+  const handleMalulDereceChange = (derece: string) => {
+    setForm(prev => ({ ...prev, malulDerece: derece }));
+  };
+
+  const handleBagimaMuhtacChange = (value: boolean) => {
+    setForm(prev => ({ ...prev, bagimaMuhtac: value }));
+  };
+
+  const handleHesapla = () => {
+    const errs: Record<string, string> = {};
+
+    if (!form.dogumTarihi) errs.dogumTarihi = 'Doğum tarihi zorunludur';
+    if (!form.ilkIsGirisTarihi) errs.ilkIsGirisTarihi = 'İlk işe giriş tarihi zorunludur';
+    if (form.statular.length === 0) errs.statular = 'Sigortalılık statüsü seçiniz';
+    if (form.malulBirimi === 'sk28/5' && !form.malulDerece) {
+      errs.malulDerece = 'Engelli derece seçiniz';
     }
 
     setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
 
-    if (errs.length === 0 && formData.birthDate && formData.entryDate) {
-      const res = calculateRetirement(
-        formData.birthDate,
-        formData.entryDate,
-        formData.gender,
-        formData.status,
-        formData.premiumDays,
-        formData.maluluk !== 'yok' ? { type: formData.maluluk as 'sk284' | 'sk285', degree: formData.degree as any } : undefined
-      );
-      setResult(res);
-    }
+    const dogumTarihi = parseDate(form.dogumTarihi);
+    const ilkGirisTarihi = parseDate(form.ilkIsGirisTarihi);
+    const status = form.statular[0] as '4a' | '4b' | '4c' | '2925';
+
+    // Malüllük tipini dönüştür
+    const malulMap: Record<string, 'yok' | 'sk284' | 'sk285'> = {
+      'yok': 'yok',
+      'sk28/4': 'sk284',
+      'sk28/5': 'sk285',
+    };
+    const malulukTuru = malulMap[form.malulBirimi || 'yok'] || 'yok';
+
+    const results = calculateRetirementOptionsDB({
+      status,
+      dogumTarihi,
+      cinsiyet: form.cinsiyet,
+      ilkGirisTarihi,
+      priGunu: form.priGunu,
+      borçlanmaOption: 'hariç',
+      borçlanmaGunu: 0,
+      askerlikGunu: form.askerlikBorclanlmasi,
+      askerlikNedir: form.askerlikNedir,
+      malulukTuru,
+      derece: form.malulDerece || null,
+      malulTarihi: null,
+    });
+
+    // Yaş ve hizmet yılı
+    const today = new Date();
+    let yas = today.getFullYear() - dogumTarihi.getFullYear();
+    if (
+      today.getMonth() < dogumTarihi.getMonth() ||
+      (today.getMonth() === dogumTarihi.getMonth() && today.getDate() < dogumTarihi.getDate())
+    ) yas--;
+
+    let hizmetYili = today.getFullYear() - ilkGirisTarihi.getFullYear();
+    if (
+      today.getMonth() < ilkGirisTarihi.getMonth() ||
+      (today.getMonth() === ilkGirisTarihi.getMonth() && today.getDate() < ilkGirisTarihi.getDate())
+    ) hizmetYili--;
+
+    const toplamGun = form.priGunu + form.askerlikBorclanlmasi;
+
+    setOzet({ yas, hizmetYili, toplamGun });
+    setSonuclar(results);
+
+    // Mobilde form'dan sonuca scroll et
+    setTimeout(() => {
+      document.getElementById('sonuclar')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
+  const uygunSayisi = sonuclar?.filter(s => s.uygun).length ?? 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">SGK Emeklilik Hesaplama</h1>
-          <p className="text-gray-600">Yaştan emeklilik, normal emeklilik ve malüllük şartlarını kontrol edin</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-6xl mx-auto p-4">
+
+        {/* Başlık */}
+        <div className="text-center py-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">SGK Emeklilik Hesaplama</h1>
+          <p className="text-gray-500 text-sm mt-1">Normal, Yaştan ve Malüllük Emeklilik Şartları</p>
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <div className="space-y-6">
-            {/* Statü */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sigortalılık Statüsü *</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              >
-                <option value="4a">4/a (SSK)</option>
-                <option value="4b">4/b (Bağ-Kur)</option>
-                <option value="4c">4/c (Memur)</option>
-                <option value="2925">2925 (Tarım Sigortası)</option>
-              </select>
-            </div>
+        <div className="flex flex-col lg:flex-row gap-6">
 
-            {/* Doğum Tarihi */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Doğum Tarihi (DD.MM.YYYY) *</label>
-              <input
-                type="text"
-                name="birthDate"
-                placeholder="01.01.1980"
-                value={formData.birthDate}
-                onChange={handleChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            {/* İlk İşe Giriş Tarihi */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">İlk İşe Giriş Tarihi (DD.MM.YYYY) *</label>
-              <input
-                type="text"
-                name="entryDate"
-                placeholder="15.06.2005"
-                value={formData.entryDate}
-                onChange={handleChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            {/* Cinsiyet */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cinsiyet</label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              >
-                <option value="erkek">Erkek</option>
-                <option value="kadin">Kadın</option>
-              </select>
-            </div>
-
-            {/* Prim Günü */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Prim Günü</label>
-              <input
-                type="number"
-                name="premiumDays"
-                value={formData.premiumDays}
-                onChange={handleChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            {/* Malüllük Durumu */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Malüllük/Engelli Durumu</label>
-              <select
-                name="maluluk"
-                value={formData.maluluk}
-                onChange={handleChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-              >
-                <option value="yok">Yok</option>
-                <option value="sk284">SK 28/4 (İlk işe girişte malül)</option>
-                <option value="sk285">SK 28/5 (İşe girdikten sonra malül - Derece bazlı)</option>
-              </select>
-            </div>
-
-            {/* Derece (SK 28/5 için) */}
-            {formData.maluluk === 'sk285' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Engel Derecesi *</label>
-                <select
-                  name="degree"
-                  value={formData.degree}
-                  onChange={handleChange}
-                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">Seçiniz</option>
-                  <option value="%40-%49">%40-%49 (Hafif)</option>
-                  <option value="%50-%59">%50-%59 (Orta)</option>
-                  <option value="%60+">%60+ (Ağır)</option>
-                </select>
-              </div>
-            )}
-
-            {/* Hata Mesajları */}
-            {errors.length > 0 && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                <ul className="text-red-700 text-sm space-y-1">
-                  {errors.map((err, i) => (
-                    <li key={i}>• {err}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Hesapla Butonu */}
-            <button
-              onClick={handleCalculate}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition"
-            >
-              Hesapla
-            </button>
+          {/* SOL: FORM */}
+          <div className="w-full lg:w-80 shrink-0">
+            <FormSection
+              form={form}
+              hesaplananIlkIsGirisTarihi={hesaplananIlkIsGirisTarihi}
+              errors={errors}
+              onFormChange={handleFormChange}
+              onCheckbox={handleCheckbox}
+              onAskerlikChange={handleAskerlikChange}
+              onMalulBirimiChange={handleMalulBirimiChange}
+              onMalulDereceChange={handleMalulDereceChange}
+              onBagimaMuhtacChange={handleBagimaMuhtacChange}
+              onHesapla={handleHesapla}
+            />
           </div>
-        </div>
 
-        {/* Sonuçlar */}
-        {result && (
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Hesaplama Sonuçları</h2>
-
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Yaş</p>
-                <p className="text-2xl font-bold text-blue-600">{result.age}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Hizmet Yılı</p>
-                <p className="text-2xl font-bold text-green-600">{result.serviceYears}</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Prim Günü</p>
-                <p className="text-2xl font-bold text-purple-600">{result.days}</p>
-              </div>
-            </div>
-
-            {result.results.length === 0 ? (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                <p className="text-yellow-700">Hiçbir emeklilik şartı sağlanmamıştır.</p>
+          {/* SAĞ: SONUÇLAR */}
+          <div className="flex-1" id="sonuclar">
+            {sonuclar === null ? (
+              /* Hesaplama yapılmadan önce */
+              <div className="card flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-5xl mb-4">📋</div>
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">Bilgileri Girin</h2>
+                <p className="text-gray-400 text-sm max-w-sm">
+                  Sol taraftaki formu doldurup <strong>Hesapla</strong> butonuna basın.
+                </p>
               </div>
             ) : (
-              <div className="space-y-6">
-                {result.results.map((res, idx) => (
+              <div className="space-y-4">
+
+                {/* ÖZET KARTLARI */}
+                <div className="grid grid-cols-3 gap-3">
+                  <StatCard label="Yaş" value={ozet!.yas} />
+                  <StatCard label="Hizmet Yılı" value={ozet!.hizmetYili} />
+                  <StatCard label="Toplam Gün" value={ozet!.toplamGun} />
+                </div>
+
+                {/* UYGUN SONUÇ BANNER */}
+                {uygunSayisi > 0 ? (
+                  <div className="bg-green-100 border-2 border-green-500 rounded-xl p-4 text-center">
+                    <p className="text-green-800 font-bold text-lg">
+                      ✅ {uygunSayisi} emeklilik şartı sağlanmaktadır
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 text-center">
+                    <p className="text-yellow-800 font-bold text-lg">
+                      ⚠️ Henüz hiçbir emeklilik şartı sağlanmamaktadır
+                    </p>
+                  </div>
+                )}
+
+                {/* SONUÇ KARTLARI */}
+                {sonuclar.map((sonuc, idx) => (
                   <div
                     key={idx}
-                    className={`border-2 rounded-lg p-4 ${
-                      res.uygun ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-gray-50'
-                    }`}
+                    className={`card ${sonuc.uygun ? 'card-success' : 'card-warning'}`}
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="font-bold text-lg text-gray-800">{res.name}</h3>
-                      {res.uygun && (
-                        <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                          ✓ UYGUN
+                    {/* Kart Başlık */}
+                    <div className="flex items-start justify-between mb-4 pb-3 border-b border-opacity-30 border-gray-300">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{sonuc.uygun ? '✅' : '⏳'}</span>
+                        <h3 className={`font-semibold text-base ${sonuc.uygun ? 'text-green-900' : 'text-yellow-900'}`}>
+                          {sonuc.name}
+                        </h3>
+                      </div>
+                      {sonuc.uygun && (
+                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
+                          UYGUN
                         </span>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      {res.kosullar.map((cond: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-700">{cond.ad}:</span>
-                          <div className="flex items-center gap-2">
-                            <span className={cond.basarili ? 'text-green-700 font-bold' : 'text-red-700'}>
-                              {cond.sahip} / {cond.gerekli}
+                    {/* Koşullar */}
+                    <div className="space-y-3">
+                      {sonuc.kosullar.map((kosul, ki) => (
+                        <div key={ki}>
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span className="flex items-center gap-2 font-medium text-gray-800">
+                              <span className={kosul.basarili ? 'text-green-600' : 'text-gray-400'}>
+                                {kosul.basarili ? '✓' : '○'}
+                              </span>
+                              {kosul.ad}
                             </span>
-                            {cond.basarili && <span className="text-green-600">✓</span>}
+                            <span className={`font-mono font-bold text-xs ${kosul.basarili ? 'text-green-700' : 'text-gray-500'}`}>
+                              {kosul.sahip} / {kosul.gerekli || '—'}
+                            </span>
                           </div>
+                          {/* İlerleme çubuğu */}
+                          {kosul.gerekli && kosul.gerekli !== '—' && !isNaN(Number(kosul.sahip)) && !isNaN(Number(kosul.gerekli)) && (
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${kosul.basarili ? 'bg-green-500' : 'bg-yellow-400'}`}
+                                style={{ width: `${Math.min(Math.round((Number(kosul.sahip) / Number(kosul.gerekli)) * 100), 100)}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
+
+                    {/* Notlar */}
+                    {sonuc.notlar && (
+                      <p className="text-xs text-gray-600 mt-3 italic border-t border-gray-200 pt-2">
+                        💡 {sonuc.notlar}
+                      </p>
+                    )}
                   </div>
                 ))}
+
               </div>
             )}
           </div>
-        )}
+
+        </div>
       </div>
     </div>
   );
