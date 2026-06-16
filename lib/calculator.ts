@@ -25,10 +25,30 @@ export interface HesaplamaResultati {
 // EYT Tarihi: 08.09.1999 DAHİL ÖNCESI
 const EYT_SINIR_TARIHI = new Date(1999, 8, 8); // 08.09.1999 dahil
 
+// Engelli (Malul) Gün Tablosu - Dönem bazlı (5510 SK 28/4)
+const ENGELLI_GUN_TABLOSU: { basla: Date; bitis?: Date; gun: number }[] = [
+  { basla: new Date(1900, 0, 1), bitis: new Date(2008, 9, 30), gun: 3600 }, // 2008 Ekim öncesi
+  { basla: new Date(2008, 9, 1), bitis: new Date(2008, 11, 31), gun: 3700 },
+  { basla: new Date(2009, 0, 1), bitis: new Date(2009, 11, 31), gun: 3800 },
+  { basla: new Date(2010, 0, 1), bitis: new Date(2010, 11, 31), gun: 3900 },
+  { basla: new Date(2011, 0, 1), bitis: undefined, gun: 3960 },
+];
+
 export const parseDate = (str: string): Date => new Date(str);
 
 export const dateFark = (d1: Date, d2: Date): number => {
   return Math.floor((d2.getTime() - d1.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+};
+
+// Engelli gün şartını tarih bazlı al
+const getEngelliGun = (tarih: Date): number => {
+  for (const tab of ENGELLI_GUN_TABLOSU) {
+    const bitisTarihi = tab.bitis || new Date(2099, 11, 31);
+    if (tarih >= tab.basla && tarih <= bitisTarihi) {
+      return tab.gun;
+    }
+  }
+  return 3960; // varsayılan
 };
 
 export const hesaplaEmeklilik = (
@@ -38,7 +58,8 @@ export const hesaplaEmeklilik = (
   askerlikBorclanlmasi: number,
   askerlikNedir: 'once' | 'sonra',
   cinsiyet: 'erkek' | 'kadin',
-  statular: string[]
+  statular: string[],
+  ilkIsGirisOnceEngelliMi?: boolean
 ): HesaplamaResultati => {
   const dogumTar = parseDate(dogumTarihi);
   const originalIlkGirisTar = parseDate(ilkIsGirisTarihi);
@@ -113,6 +134,29 @@ export const hesaplaEmeklilik = (
         hizmetYili >= 15 &&
         priGunleri >= 3600,
     });
+
+    // Engelli Emeklilik (İlk işe girişten ÖNCE engelli) - 5510 SK 28/4
+    if (ilkIsGirisOnceEngelliMi) {
+      const engelliGun = getEngelliGun(originalIlkGirisTar);
+      emeklilikKosullari.push({
+        adi: '4/a (SSK) - Engelli Emeklilik (Yaşsız)',
+        kosullar: [
+          {
+            ad: 'Hizmet Yılı',
+            gerekli: 15,
+            sahip: hizmetYili,
+            basarili: hizmetYili >= 15,
+          },
+          {
+            ad: `Prim Günü (${engelliGun} gün)`,
+            gerekli: engelliGun,
+            sahip: priGunleri,
+            basarili: priGunleri >= engelliGun,
+          },
+        ],
+        tamamlandi: hizmetYili >= 15 && priGunleri >= engelliGun,
+      });
+    }
   }
 
   // ===== 4/b (Bağ-Kur) =====
