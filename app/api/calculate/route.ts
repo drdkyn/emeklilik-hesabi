@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
       cinsiyet,
       ilkGirisTarihi,
       priGunu,
+      borçlanmaOption,
+      borçlanmaGunu,
       askerlikGunu,
       askerlikNedir,
       malulukTuru,
@@ -43,10 +45,12 @@ export async function POST(request: NextRequest) {
       cinsiyet,
       ilkGirisTarihi: ilkGiris,
       priGunu: parseInt(priGunu) || 0,
+      borçlanmaOption,
+      borçlanmaGunu: parseInt(borçlanmaGunu) || 0,
       askerlikGunu: parseInt(askerlikGunu) || 0,
       askerlikNedir,
       malulukTuru,
-      derece,
+      derece: derece || null,
       malulTarihi: malulTarih,
     });
 

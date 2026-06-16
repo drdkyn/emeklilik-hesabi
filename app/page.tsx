@@ -4,14 +4,16 @@ import React, { useState } from 'react';
 
 interface FormData {
   status: '4a' | '4b' | '4c' | '2925' | '';
-  dogumTarihi: string; // DD.MM.YYYY
+  dogumTarihi: string;
   cinsiyet: 'erkek' | 'kadin';
-  ilkGirisTarihi: string; // DD.MM.YYYY
+  ilkGirisTarihi: string;
   priGunu: number;
+  borçlanmaOption: 'hariç' | 'dahil';
+  borçlanmaGunu: number;
   askerlikGunu: number;
   askerlikNedir: 'once' | 'sonra';
   malulukTuru: 'yok' | 'sk284' | 'sk285';
-  derece: string;
+  derece: '%40-%49' | '%50-%59' | '';
   malulTarihi: string;
 }
 
@@ -42,6 +44,8 @@ export default function Home() {
     cinsiyet: 'erkek',
     ilkGirisTarihi: '',
     priGunu: 0,
+    borçlanmaOption: 'hariç',
+    borçlanmaGunu: 0,
     askerlikGunu: 0,
     askerlikNedir: 'sonra',
     malulukTuru: 'yok',
@@ -51,14 +55,6 @@ export default function Home() {
 
   const [results, setResults] = useState<RetirementResult[] | null>(null);
   const [submitted, setSubmitted] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'priGunu' || name === 'askerlikGunu' ? parseInt(value) || 0 : value,
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +82,12 @@ export default function Home() {
           cinsiyet: formData.cinsiyet,
           ilkGirisTarihi: formData.ilkGirisTarihi,
           priGunu: formData.priGunu,
+          borçlanmaOption: formData.borçlanmaOption,
+          borçlanmaGunu: formData.borçlanmaOption === 'dahil' ? formData.borçlanmaGunu : 0,
           askerlikGunu: formData.askerlikGunu,
           askerlikNedir: formData.askerlikNedir,
           malulukTuru: formData.malulukTuru,
-          derece: formData.derece,
+          derece: formData.derece || null,
           malulTarihi: formData.malulTarihi,
         }),
       });
@@ -108,210 +106,191 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">
-            SGK Emeklilik Hak Hesaplayıcı
-          </h1>
-          <p className="text-slate-600">
-            Statüye göre emeklilik haklarınızı kontrol edin
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-3 gap-6">
+        {/* FORM PANEL */}
+        <div className="col-span-1 sticky top-4 h-fit">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">SGK Emeklilik Hak Hesaplayıcı</h1>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* FORM */}
-          <div className="lg:col-span-1">
-            <form
-              onSubmit={handleSubmit}
-              className="bg-white rounded-lg shadow-md p-6 space-y-5 sticky top-4"
-            >
-              <h2 className="text-lg font-semibold text-slate-900 mb-6">
-                BİLGİLERİNİZİ GİRİN
-              </h2>
-
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* STATUS */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Statü *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Statü *</label>
                 <select
-                  name="status"
                   value={formData.status}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="">Seçiniz</option>
-                  <option value="4a">4/a (SSK)</option>
-                  <option value="4b">4/b (Bağ-Kur)</option>
-                  <option value="4c">4/c (Memur)</option>
-                  <option value="2925">2925 (Tarım)</option>
+                  <option value="4a">4/a - SSK</option>
+                  <option value="4b">4/b - Bağ-Kur</option>
+                  <option value="4c">4/c - Memur</option>
+                  <option value="2925">2925 - Tarım</option>
                 </select>
               </div>
 
+              {/* DOĞUM TARİHİ */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Doğum Tarihi (DD.MM.YYYY) *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi (DD.MM.YYYY) *</label>
                 <input
                   type="text"
-                  name="dogumTarihi"
                   value={formData.dogumTarihi}
-                  onChange={handleChange}
-                  placeholder="01.01.1990"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, dogumTarihi: e.target.value })}
+                  placeholder="01.01.1985"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
 
+              {/* CİNSİYET */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Cinsiyet
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cinsiyet *</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center">
+                  <label className="flex items-center gap-2">
                     <input
                       type="radio"
-                      name="cinsiyet"
                       value="erkek"
                       checked={formData.cinsiyet === 'erkek'}
-                      onChange={handleChange}
-                      className="mr-2"
+                      onChange={(e) => setFormData({ ...formData, cinsiyet: 'erkek' })}
                     />
-                    <span className="text-slate-700">Erkek</span>
+                    <span className="text-sm">Erkek</span>
                   </label>
-                  <label className="flex items-center">
+                  <label className="flex items-center gap-2">
                     <input
                       type="radio"
-                      name="cinsiyet"
                       value="kadin"
                       checked={formData.cinsiyet === 'kadin'}
-                      onChange={handleChange}
-                      className="mr-2"
+                      onChange={(e) => setFormData({ ...formData, cinsiyet: 'kadin' })}
                     />
-                    <span className="text-slate-700">Kadın</span>
+                    <span className="text-sm">Kadın</span>
                   </label>
                 </div>
               </div>
 
+              {/* İLK GİRİŞ TARİHİ */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  İlk İşe Giriş Tarihi (DD.MM.YYYY) *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">İlk Giriş Tarihi (DD.MM.YYYY) *</label>
                 <input
                   type="text"
-                  name="ilkGirisTarihi"
                   value={formData.ilkGirisTarihi}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData({ ...formData, ilkGirisTarihi: e.target.value })}
                   placeholder="01.01.2010"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
 
+              {/* PRİM GÜNÜ & BORÇLANMA */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Prim Günü (Toplam)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Prim Günü *</label>
                 <input
                   type="number"
-                  name="priGunu"
                   value={formData.priGunu}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, priGunu: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="0"
                 />
+
+                <div className="mt-3 space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      value="hariç"
+                      checked={formData.borçlanmaOption === 'hariç'}
+                      onChange={(e) => setFormData({ ...formData, borçlanmaOption: 'hariç' })}
+                    />
+                    <span className="text-sm">Borçlanma Hariç</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      value="dahil"
+                      checked={formData.borçlanmaOption === 'dahil'}
+                      onChange={(e) => setFormData({ ...formData, borçlanmaOption: 'dahil' })}
+                    />
+                    <span className="text-sm">Borçlanma Dahil</span>
+                  </label>
+                </div>
+
+                {formData.borçlanmaOption === 'dahil' && (
+                  <input
+                    type="number"
+                    value={formData.borçlanmaGunu}
+                    onChange={(e) => setFormData({ ...formData, borçlanmaGunu: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md mt-2"
+                    placeholder="Borçlanma Günü"
+                  />
+                )}
               </div>
 
+              {/* ASKERLİK */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Askerlik Günü
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Askerlik Günü</label>
                 <input
                   type="number"
-                  name="askerlikGunu"
                   value={formData.askerlikGunu}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, askerlikGunu: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="0"
                 />
+                <div className="mt-2 flex gap-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      value="once"
+                      checked={formData.askerlikNedir === 'once'}
+                      onChange={(e) => setFormData({ ...formData, askerlikNedir: 'once' })}
+                    />
+                    <span>Çalışmadan önce</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      value="sonra"
+                      checked={formData.askerlikNedir === 'sonra'}
+                      onChange={(e) => setFormData({ ...formData, askerlikNedir: 'sonra' })}
+                    />
+                    <span>Çalıştıktan sonra</span>
+                  </label>
+                </div>
               </div>
 
-              {formData.askerlikGunu > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Askerlik Dönemi
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="askerlikNedir"
-                        value="once"
-                        checked={formData.askerlikNedir === 'once'}
-                        onChange={handleChange}
-                        className="mr-2"
-                      />
-                      <span className="text-slate-700">Işe girmeden önce</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="askerlikNedir"
-                        value="sonra"
-                        checked={formData.askerlikNedir === 'sonra'}
-                        onChange={handleChange}
-                        className="mr-2"
-                      />
-                      <span className="text-slate-700">İşte iken</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              <div className="border-t pt-4">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Malüllük / Engelli
-                </label>
+              {/* MALÜLLÜK */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Malüllük Türü</label>
                 <select
-                  name="malulukTuru"
                   value={formData.malulukTuru}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, malulukTuru: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="yok">Yok</option>
                   <option value="sk284">SK 28/4 (İlk İşe Girişte)</option>
-                  <option value="sk285">SK 28/5 (Sonradan Malül)</option>
+                  <option value="sk285">SK 28/5 (Sonradan)</option>
                 </select>
               </div>
 
+              {/* DERECE & TARİH */}
               {formData.malulukTuru === 'sk285' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Malüllük Derecesi
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Derece</label>
                     <select
-                      name="derece"
                       value={formData.derece}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setFormData({ ...formData, derece: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     >
                       <option value="">Seçiniz</option>
                       <option value="%40-%49">%40-%49</option>
                       <option value="%50-%59">%50-%59</option>
-                      <option value="%60+">%60+</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Malüllük Tespiti Tarihi (DD.MM.YYYY)
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Malüllük Tarihi</label>
                     <input
                       type="text"
-                      name="malulTarihi"
                       value={formData.malulTarihi}
-                      onChange={handleChange}
-                      placeholder="01.01.2020"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setFormData({ ...formData, malulTarihi: e.target.value })}
+                      placeholder="01.01.2015"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
                 </>
@@ -319,87 +298,47 @@ export default function Home() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200 mt-6"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-md transition"
               >
-                HESAPLA
+                Hesapla
               </button>
             </form>
           </div>
+        </div>
 
-          {/* SONUÇLAR */}
-          <div className="lg:col-span-2">
-            {submitted && results ? (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">
-                  EMEKLİLİK HAKLARI
-                </h2>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-green-700 mb-3">
-                    ✅ Uygun Olduğunuz
-                  </h3>
-                  <div className="space-y-3">
-                    {results
-                      .filter((r) => r.uygun)
-                      .map((result, idx) => (
-                        <div
-                          key={idx}
-                          className="bg-green-50 border border-green-200 rounded-lg p-4"
-                        >
-                          <div className="font-semibold text-green-900 mb-2">
-                            {result.name}
-                          </div>
-                          <div className="text-sm text-green-800">
-                            <div className="font-medium mb-2">Şartlar:</div>
-                            <ul className="space-y-1">
-                              {result.kosullar.map((kosul, i) => (
-                                <li key={i} className="text-sm">
-                                  <span className="text-green-700">
-                                    ✓ {kosul.ad}: {kosul.sahip} (Gerekli: {kosul.gerekli})
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      ))}
+        {/* RESULTS PANEL */}
+        <div className="col-span-2">
+          {submitted && results ? (
+            <div className="space-y-4">
+              {results.map((result, idx) => (
+                <div
+                  key={idx}
+                  className={`rounded-lg p-4 shadow-md border-l-4 ${
+                    result.uygun
+                      ? 'bg-green-50 border-green-500'
+                      : 'bg-gray-50 border-gray-400'
+                  }`}
+                >
+                  <h3 className="font-bold text-lg mb-2">{result.name}</h3>
+                  <div className="space-y-1 text-sm">
+                    {result.kosullar.map((k, i) => (
+                      <div key={i} className="flex justify-between">
+                        <span>{k.ad}:</span>
+                        <span className={k.basarili ? 'text-green-600 font-semibold' : 'text-orange-600'}>
+                          {k.sahip}/{k.gerekli}
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                  {result.notlar && <p className="text-xs text-gray-600 mt-2 italic">{result.notlar}</p>}
                 </div>
-
-                {results.some((r) => !r.uygun) && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-700 mb-3">
-                      ❌ Henüz Uygun Olmadığınız
-                    </h3>
-                    <div className="space-y-2">
-                      {results
-                        .filter((r) => !r.uygun)
-                        .slice(0, 5)
-                        .map((result, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-slate-100 border border-slate-200 rounded-lg p-3 text-sm"
-                          >
-                            <div className="font-semibold text-slate-800 mb-1">
-                              {result.name}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : !submitted ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-                <p className="text-lg font-semibold text-blue-900 mb-2">
-                  Emeklilik Haklarını Öğrenin
-                </p>
-                <p className="text-blue-800 text-sm">
-                  Sol tarafta bilgilerinizi giriniz ve "Hesapla" butonuna tıklayınız.
-                </p>
-              </div>
-            ) : null}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-lg p-6 text-center text-gray-500">
+              Form doldurarak hesaplama yapınız
+            </div>
+          )}
         </div>
       </div>
     </div>

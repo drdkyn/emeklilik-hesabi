@@ -6,10 +6,12 @@ interface CalculatorInput {
   cinsiyet: 'erkek' | 'kadin';
   ilkGirisTarihi: Date;
   priGunu: number;
+  borçlanmaOption: 'hariç' | 'dahil';
+  borçlanmaGunu: number;
   askerlikGunu: number;
   askerlikNedir: 'once' | 'sonra';
   malulukTuru: 'yok' | 'sk284' | 'sk285';
-  derece?: string;
+  derece?: string | null;
   malulTarihi?: Date | null;
 }
 
@@ -71,6 +73,8 @@ export function calculateRetirementOptionsDB(input: CalculatorInput): Retirement
     cinsiyet,
     ilkGirisTarihi,
     priGunu,
+    borçlanmaOption,
+    borçlanmaGunu,
     askerlikGunu,
     askerlikNedir,
     malulukTuru,
@@ -81,7 +85,12 @@ export function calculateRetirementOptionsDB(input: CalculatorInput): Retirement
   const today = new Date();
   const age = calculateAge(dogumTarihi, today);
   const serviceYears = calculateServiceYears(ilkGirisTarihi, today);
-  const totalDays = priGunu + askerlikGunu;
+  
+  // BORÇLANMA HESAPLAMASI
+  const totalDays = 
+    borçlanmaOption === 'dahil' 
+      ? priGunu + askerlikGunu + borçlanmaGunu
+      : priGunu + askerlikGunu;
 
   const results: RetirementResult[] = [];
 
@@ -117,7 +126,7 @@ export function calculateRetirementOptionsDB(input: CalculatorInput): Retirement
         const uygun = meetsServiceYears && meetsDays && meetsAge;
 
         results.push({
-          name: `${rule.name} (NORMAL)`,
+          name: `${rule.name}`,
           type: 'normal',
           uygun,
           kosullar: [
@@ -176,7 +185,7 @@ export function calculateRetirementOptionsDB(input: CalculatorInput): Retirement
         const uygun = meetsServiceYears && meetsDays && meetsAge;
 
         results.push({
-          name: `${rule.name} (YAŞTAN)`,
+          name: `${rule.name}`,
           type: 'age',
           uygun,
           kosullar: [
@@ -221,7 +230,7 @@ export function calculateRetirementOptionsDB(input: CalculatorInput): Retirement
 
     // MALÜLLÜK EMEKLİLİĞİ
     if (malulukTuru !== 'yok') {
-      // SK 28/5 için derece filtresi
+      // SK 28/5 için derece filtresi (SADECE %40-%49 ve %50-%59)
       if (malulukTuru === 'sk285' && derece) {
         disabilityRules = disabilityRules.filter(r => r.degree === derece);
       }
