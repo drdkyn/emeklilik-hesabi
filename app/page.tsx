@@ -224,7 +224,7 @@ export default function Home() {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <h3 className="font-bold text-lg text-gray-800">{res.title}</h3>
+                      <h3 className="font-bold text-lg text-gray-800">{res.name}</h3>
                       {res.uygun && (
                         <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">
                           ✓ UYGUN
@@ -233,14 +233,14 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-2">
-                      {res.conditions.map((cond, i) => (
+                      {res.kosullar.map((cond: any, i: number) => (
                         <div key={i} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-700">{cond.label}:</span>
+                          <span className="text-gray-700">{cond.ad}:</span>
                           <div className="flex items-center gap-2">
-                            <span className={cond.met ? 'text-green-700 font-bold' : 'text-red-700'}>
-                              {cond.have} / {cond.required}
+                            <span className={cond.basarili ? 'text-green-700 font-bold' : 'text-red-700'}>
+                              {cond.sahip} / {cond.gerekli}
                             </span>
-                            {cond.met && <span className="text-green-600">✓</span>}
+                            {cond.basarili && <span className="text-green-600">✓</span>}
                           </div>
                         </div>
                       ))}
