@@ -1,6 +1,6 @@
 # Emeklilik Hesaplayıcı 🧮
 
-Turkish SGK (Sosyal Güvenlik Kurumu) emeklilik aylığı bağlama koşulları hesaplayıcısı. MÜKTEZA_01_02_2023.xlsb dosyasına dayanan kapsamlı hesaplama aracı.
+
 
 ## Özellikler ✨
 
@@ -150,9 +150,8 @@ MIT License - Detaylar için LICENSE dosyasına bakın
 
 ## Yazılan 👨‍💻
 
-**DURDU** (@drdkyn)
 
 ---
 
 **Not:** Bu proje açık kaynaktır ve eğitim/kişisel kullanım amaçlıdır.
-SGK ile olan resmi işlemlerinizde her zaman onların verdiği bilgileri ve belgelerinizi referans alınız.
+SGK ile olan resmi işlemlerinizde her zaman onların verdiği bilgileri ve belgelerinizi referans alınız..
