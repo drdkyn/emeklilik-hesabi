@@ -224,7 +224,7 @@ export default function Home() {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <h3 className="font-bold text-lg text-gray-800">{res.title}</h3>
+                      <h3 className="font-bold text-lg text-gray-800">{res.name}</h3>
                       {res.uygun && (
                         <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">
                           ✓ UYGUN
