@@ -201,7 +201,13 @@ export default function FormSection({
             type="text" 
             name="dogumTarihi" 
             value={form.dogumTarihi}
-            onChange={onFormChange}
+            onChange={(e) => {
+              // Otomatik noktalar ekleme: 25011977 → 25.01.1977
+              let val = e.target.value.replace(/\D/g, ''); // Sadece rakamlar
+              if (val.length >= 2) val = val.slice(0, 2) + '.' + val.slice(2);
+              if (val.length >= 5) val = val.slice(0, 5) + '.' + val.slice(5, 9);
+              onFormChange({ target: { name: 'dogumTarihi', value: val } } as any);
+            }}
             placeholder="GG.AA.YYYY"
             inputMode="numeric"
             pattern="\d{2}\.\d{2}\.\d{4}"
@@ -224,7 +230,13 @@ export default function FormSection({
           type="text" 
           name="ilkIsGirisTarihi" 
           value={form.ilkIsGirisTarihi}
-          onChange={onFormChange}
+          onChange={(e) => {
+            // Otomatik noktalar ekleme: 01012004 → 01.01.2004
+            let val = e.target.value.replace(/\D/g, ''); // Sadece rakamlar
+            if (val.length >= 2) val = val.slice(0, 2) + '.' + val.slice(2);
+            if (val.length >= 5) val = val.slice(0, 5) + '.' + val.slice(5, 9);
+            onFormChange({ target: { name: 'ilkIsGirisTarihi', value: val } } as any);
+          }}
           placeholder="GG.AA.YYYY"
           inputMode="numeric"
           pattern="\d{2}\.\d{2}\.\d{4}"
