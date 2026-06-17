@@ -11,10 +11,12 @@ export interface RetirementInput {
   borçlanmaGunu: number;
   askerlikGunu: number;
   askerlikNedir: 'once' | 'sonra';
-  malulukTuru: 'yok' | 'sk284' | 'sk285';
+  malulukTuru: 'yok' | 'sk284' | 'sk285' | 'm25' | 'adiMalullük';
   derece: string | null;
   malulTarihi: Date | null;
   bagimaMuhtac?: boolean;
+  /** Sadece 4c statüsü için: hangi kanuna göre değerlendirilecek (5434 = eski Emekli Sandığı, 5510 = yeni memur). */
+  lawType?: '5434' | '5510';
 }
 
 export interface RetirementResult {
@@ -48,7 +50,7 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
   const {
     status, dogumTarihi, cinsiyet, ilkGirisTarihi,
     priGunu, borçlanmaOption, borçlanmaGunu,
-    askerlikGunu, askerlikNedir, malulukTuru, derece, bagimaMuhtac,
+    askerlikGunu, askerlikNedir, malulukTuru, derece, bagimaMuhtac, lawType,
   } = input;
 
   const today = new Date();
@@ -129,16 +131,27 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
 
   // ---- MALÜLLÜk ----
   if (malulukTuru !== 'yok' && statusRules.disability) {
-    for (const rule of statusRules.disability) {
+    // 4c statüsünde kanun (5434/5510) seçimi varsa, sadece o kanuna ait kuralları değerlendir.
+    // Diğer statülerde lawType filtresi uygulanmaz (rule.lawType yoksa veya status 4c değilse atla).
+    const disabilityRules = statusRules.disability.filter((rule: any) => {
+      if (status === '4c' && lawType && rule.lawType) {
+        return rule.lawType === lawType;
+      }
+      return true;
+    });
+
+    for (const rule of disabilityRules) {
       if (!isGecerli(rule)) continue;
 
-      if (malulukTuru === 'sk284' && rule.degree === null) {
+      // SK 28/4 — işe başlamadan/girişte malül olma (yaşsız, derece şartı yok)
+      if (malulukTuru === 'sk284' && rule.degree === null && rule.malulukType !== 'm25' && rule.malulukType !== 'adiMalullük') {
         const { kosullar, uygun } = buildKosullar(rule);
         results.push({ name: rule.name, type: 'disability', uygun, kosullar, notlar: rule.note });
         break; // İlk uygun SK 28/4 kuralı
       }
 
-      if (malulukTuru === 'sk285' && rule.degree && derece === rule.degree) {
+      // SK 28/5 — sonradan malül olma, dereceli (oran seçimine göre)
+      if (malulukTuru === 'sk285' && rule.degree && derece === rule.degree && rule.malulukType !== 'm25') {
         // Bakıma muhtaç + %60+ → hizmet yılı şartı yok
         const isBakimaMuhtac = bagimaMuhtac && rule.degree === '%60+';
         const effectiveServiceYears = isBakimaMuhtac ? 0 : rule.serviceYears;
@@ -161,6 +174,37 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
 
         results.push({ name: rule.name, type: 'disability', uygun, kosullar, notlar });
         break; // İlk uygun SK 28/5 kuralı
+      }
+
+      // 5510 M25 — işe giriş sonrası +%60 malüllük
+      if (malulukTuru === 'm25' && rule.malulukType === 'm25') {
+        const isBakimaMuhtac = bagimaMuhtac;
+        const effectiveServiceYears = isBakimaMuhtac ? 0 : rule.serviceYears;
+
+        const { kosullar, uygun } = buildKosullar(rule, effectiveServiceYears);
+
+        if (isBakimaMuhtac) {
+          kosullar.push({
+            ad: 'Bakıma Muhtaçlık',
+            gerekli: 'Rapor ile belgelenmiş',
+            sahip: 'Evet',
+            basarili: true,
+          });
+        }
+
+        const notlar = isBakimaMuhtac
+          ? 'Bakıma muhtaç olduğunuz için 10 yıl hizmet yılı şartı aranmaz. Durumunuz sağlık kurulu raporu ile belgelenmelidir.'
+          : rule.note;
+
+        results.push({ name: rule.name, type: 'disability', uygun, kosullar, notlar });
+        break; // İlk uygun M25 kuralı
+      }
+
+      // 5434 Özgü Malulen Emeklilik — Adi Malullük (sadece 4c/5434)
+      if (malulukTuru === 'adiMalullük' && rule.malulukType === 'adiMalullük') {
+        const { kosullar, uygun } = buildKosullar(rule);
+        results.push({ name: rule.name, type: 'disability', uygun, kosullar, notlar: rule.note });
+        break; // İlk uygun Adi Malullük kuralı
       }
     }
   }
