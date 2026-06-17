@@ -112,7 +112,7 @@ export default function FormSection({
                 {/* 4c / 5434: işe giriş öncesi yaşsız + işe giriş öncesi +%40 + 5434 adi malullük */}
                 {statu === '4c' && lawType === '5434' && (
                   <>
-                    <option value="sk28/4">İşe girmeden önce Engelli (yaşsız)</option>
+                    <option value="sk28/4">İlk işe girişte malül %60 ve üstü</option>
                     <option value="sk28/4-40">İşe girmeden önce Engelli (+%40)</option>
                     <option value="sk28/5">İşe girdikten sonra Engelli (dereceli — %50-59/%40-49)</option>
                     <option value="adiMalullük">5434 Adi Malullük (657 m.105 — 10 yıl/3600 gün)</option>
@@ -122,7 +122,7 @@ export default function FormSection({
                 {/* 4c / 5510: 4b ile aynı sabit kurallar + M25 */}
                 {statu === '4c' && lawType === '5510' && (
                   <>
-                    <option value="sk28/4">Md.28/4 — Ağır düzey +%60 (yaşsız, 15 yıl/3960 gün)</option>
+                    <option value="sk28/4">Md.28/4 — İlk işe girişte malül %60 ve üstü</option>
                     <option value="sk28/5">Md.28/5 — Sonradan malül (dereceli — %50-59/%40-49)</option>
                     <option value="m25">Md.25 — İşe giriş sonrası +%60 malüllük (10 yıl/1800 gün)</option>
                   </>
@@ -131,7 +131,7 @@ export default function FormSection({
                 {/* 4a, 4b, 2925 */}
                 {statu !== '4c' && (
                   <>
-                    <option value="sk28/4">Md.28/4 — İlk işe girişte malül (yaşsız)</option>
+                    <option value="sk28/4">Md.28/4 — İlk işe girişte malül %60 ve üstü</option>
                     <option value="sk28/5">Md.28/5 — Sonradan malül (dereceli)</option>
                   </>
                 )}
