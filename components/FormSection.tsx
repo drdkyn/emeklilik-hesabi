@@ -170,8 +170,8 @@ export default function FormSection({
           onChange={onFormChange} min="0" placeholder="0" className="input-field mb-2" />
         <div className="flex gap-4">
           {[
-            { val: 'once' as const, label: 'Girişten ÖNCE', desc: '(borçlanma nedeniyle öne çekilir)' },
-            { val: 'sonra' as const, label: 'Girişten SONRA', desc: '(sadece gün eklenir)' },
+            { val: 'once' as const, label: 'İlk İşe Girişten ÖNCE', desc: '(borçlanma nedeniyle öne çekilir)' },
+            { val: 'sonra' as const, label: 'İlk İşe Girişten SONRA', desc: '(sadece gün eklenir)' },
           ].map(opt => (
             <label key={opt.val} className="flex items-start gap-1.5 cursor-pointer text-xs text-gray-700">
               <input type="radio" name="askerlikNedir" value={opt.val}
