@@ -94,7 +94,7 @@
     ],
     "age": [
       {
-        "name": "Yaşlılık (Kısmi) — 08.09.1999 Öncesi / 23.05.2002 öncesi dolduranlar",
+        "name": "Yaştan Emeklilik — 08.09.1999 Öncesi / 23.05.2002 öncesi dolduranlar",
         "dateFrom": "1976-09-08",
         "dateTo": "1999-09-08",
         "serviceYears": 15,
@@ -103,7 +103,7 @@
         "ageMan": 55
       },
       {
-        "name": "Yaşlılık (Kısmi) — 09.09.1999-30.04.2008",
+        "name": "Yaştan Emeklilik — 09.09.1999-30.04.2008",
         "dateFrom": "1999-09-09",
         "dateTo": "2008-04-30",
         "serviceYears": 25,
@@ -112,7 +112,7 @@
         "ageMan": 60
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.05.2008-31.12.2008",
+        "name": "Yaştan Emeklilik — 01.05.2008-31.12.2008",
         "dateFrom": "2008-05-01",
         "dateTo": "2008-12-31",
         "serviceYears": null,
@@ -121,7 +121,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2009-31.12.2009",
+        "name": "Yaştan Emeklilik — 01.01.2009-31.12.2009",
         "dateFrom": "2009-01-01",
         "dateTo": "2009-12-31",
         "serviceYears": null,
@@ -130,7 +130,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2010-31.12.2010",
+        "name": "Yaştan Emeklilik — 01.01.2010-31.12.2010",
         "dateFrom": "2010-01-01",
         "dateTo": "2010-12-31",
         "serviceYears": null,
@@ -139,7 +139,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2011-31.12.2011",
+        "name": "Yaştan Emeklilik — 01.01.2011-31.12.2011",
         "dateFrom": "2011-01-01",
         "dateTo": "2011-12-31",
         "serviceYears": null,
@@ -148,7 +148,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2012-31.12.2012",
+        "name": "Yaştan Emeklilik — 01.01.2012-31.12.2012",
         "dateFrom": "2012-01-01",
         "dateTo": "2012-12-31",
         "serviceYears": null,
@@ -157,7 +157,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2013-31.12.2013",
+        "name": "Yaştan Emeklilik — 01.01.2013-31.12.2013",
         "dateFrom": "2013-01-01",
         "dateTo": "2013-12-31",
         "serviceYears": null,
@@ -166,7 +166,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2014-31.12.2014",
+        "name": "Yaştan Emeklilik — 01.01.2014-31.12.2014",
         "dateFrom": "2014-01-01",
         "dateTo": "2014-12-31",
         "serviceYears": null,
@@ -175,7 +175,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2015-31.12.2015",
+        "name": "Yaştan Emeklilik — 01.01.2015-31.12.2015",
         "dateFrom": "2015-01-01",
         "dateTo": "2015-12-31",
         "serviceYears": null,
@@ -184,7 +184,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2016-31.12.2035",
+        "name": "Yaştan Emeklilik — 01.01.2016-31.12.2035",
         "dateFrom": "2016-01-01",
         "dateTo": "2035-12-31",
         "serviceYears": null,
@@ -193,7 +193,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2036-31.12.2037",
+        "name": "Yaştan Emeklilik — 01.01.2036-31.12.2037",
         "dateFrom": "2036-01-01",
         "dateTo": "2037-12-31",
         "serviceYears": null,
@@ -202,7 +202,7 @@
         "ageMan": 64
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2038-31.12.2039",
+        "name": "Yaştan Emeklilik — 01.01.2038-31.12.2039",
         "dateFrom": "2038-01-01",
         "dateTo": "2039-12-31",
         "serviceYears": null,
@@ -211,7 +211,7 @@
         "ageMan": 65
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2040-31.12.2041",
+        "name": "Yaştan Emeklilik — 01.01.2040-31.12.2041",
         "dateFrom": "2040-01-01",
         "dateTo": "2041-12-31",
         "serviceYears": null,
@@ -220,7 +220,7 @@
         "ageMan": 65
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2042+",
+        "name": "Yaştan Emeklilik — 01.01.2042+",
         "dateFrom": "2042-01-01",
         "dateTo": "2099-12-31",
         "serviceYears": null,
@@ -516,7 +516,7 @@
     ],
     "age": [
       {
-        "name": "Yaşlılık (Kısmi) — 08.09.1999 Öncesi",
+        "name": "Yaştan Emeklilik — 08.09.1999 Öncesi",
         "dateFrom": "1976-09-08",
         "dateTo": "1999-09-08",
         "serviceYears": 15,
@@ -525,7 +525,7 @@
         "ageMan": 58
       },
       {
-        "name": "Yaşlılık (Kısmi) — 09.09.1999-30.04.2008",
+        "name": "Yaştan Emeklilik — 09.09.1999-30.04.2008",
         "dateFrom": "1999-09-09",
         "dateTo": "2008-04-30",
         "serviceYears": 15,
@@ -534,7 +534,7 @@
         "ageMan": 62
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.05.2008-31.12.2035",
+        "name": "Yaştan Emeklilik — 01.05.2008-31.12.2035",
         "dateFrom": "2008-05-01",
         "dateTo": "2035-12-31",
         "serviceYears": null,
@@ -543,7 +543,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2036-31.12.2037",
+        "name": "Yaştan Emeklilik — 01.01.2036-31.12.2037",
         "dateFrom": "2036-01-01",
         "dateTo": "2037-12-31",
         "serviceYears": null,
@@ -552,7 +552,7 @@
         "ageMan": 64
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2038-31.12.2039",
+        "name": "Yaştan Emeklilik — 01.01.2038-31.12.2039",
         "dateFrom": "2038-01-01",
         "dateTo": "2039-12-31",
         "serviceYears": null,
@@ -561,7 +561,7 @@
         "ageMan": 65
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2040-31.12.2041",
+        "name": "Yaştan Emeklilik — 01.01.2040-31.12.2041",
         "dateFrom": "2040-01-01",
         "dateTo": "2041-12-31",
         "serviceYears": null,
@@ -570,7 +570,7 @@
         "ageMan": 65
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2042+",
+        "name": "Yaştan Emeklilik — 01.01.2042+",
         "dateFrom": "2042-01-01",
         "dateTo": "2099-12-31",
         "serviceYears": null,
@@ -695,7 +695,7 @@
     ],
     "age": [
       {
-        "name": "Yaşlılık (Kısmi) — 08.09.1999 Öncesi",
+        "name": "Yaştan Emeklilik — 08.09.1999 Öncesi",
         "dateFrom": "1976-09-08",
         "dateTo": "1999-09-08",
         "serviceYears": 25,
@@ -704,7 +704,7 @@
         "ageMan": null
       },
       {
-        "name": "Yaşlılık (Kısmi) — 09.09.1999-30.04.2008",
+        "name": "Yaştan Emeklilik — 09.09.1999-30.04.2008",
         "dateFrom": "1999-09-09",
         "dateTo": "2008-04-30",
         "serviceYears": 25,
@@ -713,7 +713,7 @@
         "ageMan": 61
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.05.2008-31.12.2035",
+        "name": "Yaştan Emeklilik — 01.05.2008-31.12.2035",
         "dateFrom": "2008-05-01",
         "dateTo": "2035-12-31",
         "serviceYears": null,
@@ -722,7 +722,7 @@
         "ageMan": 63
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2036-31.12.2037",
+        "name": "Yaştan Emeklilik — 01.01.2036-31.12.2037",
         "dateFrom": "2036-01-01",
         "dateTo": "2037-12-31",
         "serviceYears": null,
@@ -731,7 +731,7 @@
         "ageMan": 64
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2038-31.12.2039",
+        "name": "Yaştan Emeklilik — 01.01.2038-31.12.2039",
         "dateFrom": "2038-01-01",
         "dateTo": "2039-12-31",
         "serviceYears": null,
@@ -740,7 +740,7 @@
         "ageMan": 65
       },
       {
-        "name": "Yaşlılık (Kısmi) — 01.01.2040+",
+        "name": "Yaştan Emeklilik — 01.01.2040+",
         "dateFrom": "2040-01-01",
         "dateTo": "2099-12-31",
         "serviceYears": null,

@@ -151,7 +151,7 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
           ? 'Bakıma muhtaç olduğunuz için 10 yıl hizmet yılı şartı aranmaz. Durumunuz sağlık kurulu raporu ile belgelenmelidir.'
           : rule.note;
 
-        results.push({ name: `${rule.name} - ${derece}`, type: 'disability', uygun, kosullar, notlar });
+        results.push({ name: rule.name, type: 'disability', uygun, kosullar, notlar });
       }
     }
   }
