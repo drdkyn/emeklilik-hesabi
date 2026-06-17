@@ -48,12 +48,19 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
   const {
     status, dogumTarihi, cinsiyet, ilkGirisTarihi,
     priGunu, borçlanmaOption, borçlanmaGunu,
-    askerlikGunu, malulukTuru, derece, bagimaMuhtac,
+    askerlikGunu, askerlikNedir, malulukTuru, derece, bagimaMuhtac,
   } = input;
 
   const today = new Date();
   const age = calculateAge(dogumTarihi, today);
-  const serviceYears = calculateServiceYears(ilkGirisTarihi, today);
+  
+  // ÖNEMLİ: Askerlik işe girmeden ÖNCE olmuşsa, işe giriş tarihini öne çek (borçlanma günü kadar geri)
+  let effectiveStartDate = new Date(ilkGirisTarihi);
+  if (askerlikNedir === 'once' && askerlikGunu > 0) {
+    effectiveStartDate = new Date(ilkGirisTarihi.getTime() - askerlikGunu * 24 * 60 * 60 * 1000);
+  }
+  
+  const serviceYears = calculateServiceYears(effectiveStartDate, today);
   const totalDays = borçlanmaOption === 'hariç'
     ? priGunu + askerlikGunu + borçlanmaGunu
     : priGunu + askerlikGunu;
@@ -70,7 +77,7 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
   function isGecerli(rule: any): boolean {
     const from = parseLocal(rule.dateFrom);
     const to = parseLocal(rule.dateTo);
-    return ilkGirisTarihi >= from && ilkGirisTarihi <= to;
+    return effectiveStartDate >= from && effectiveStartDate <= to;
   }
 
   function buildKosullar(rule: any, extraServiceYears?: number): { kosullar: RetirementResult['kosullar']; uygun: boolean } {
