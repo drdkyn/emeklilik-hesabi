@@ -171,14 +171,16 @@ export default function Home() {
     };
     const malulukTuru = malulMap[form.malulBirimi || 'yok'] || 'yok';
 
-    // ÖNEMLİ: 4c statüsünde malülük seçilmişse, TARAFINDAN her iki lawType (5434 ve 5510) için
-    // SADECE disability kurallarını hesapla (çünkü normal/age kuralları aynı). 
-    // Normal ve age kurallarını ise sadece bir kez hesapla.
+    // ÖNEMLİ: 4c statüsünde:
+    // - Malülük SEÇİLMEMİŞSE: seçilen lawType (5434/5510) ile hesapla
+    // - Malülük SEÇİLMİŞSE: sadece seçilen lawType ile hesapla (not: tüm kanun kombinasyonları değil)
     let results: HesapSonucu[] = [];
     
+    const selectedLawType = status === '4c' ? form.lawType : undefined;
+    
     if (status === '4c' && malulukTuru !== 'yok') {
-      // 4c/5434 kombinasyonu - tüm kurallar
-      const results5434 = calculateRetirementOptionsDB({
+      // 4c + malülük: Sadece seçilen kanun (5434 veya 5510) için hesaplama yap
+      results = calculateRetirementOptionsDB({
         status,
         dogumTarihi,
         cinsiyet: form.cinsiyet,
@@ -192,36 +194,8 @@ export default function Home() {
         derece: form.malulDerece || null,
         malulTarihi: null,
         bagimaMuhtac: form.bagimaMuhtac,
-        lawType: '5434',
+        lawType: selectedLawType,
       });
-      
-      // 4c/5510 kombinasyonu - tüm kurallar
-      const results5510 = calculateRetirementOptionsDB({
-        status,
-        dogumTarihi,
-        cinsiyet: form.cinsiyet,
-        ilkGirisTarihi,
-        priGunu: form.priGunu,
-        borçlanmaOption: form.borçlanmaDahil ? 'dahil' : 'hariç',
-        borçlanmaGunu: 0,
-        askerlikGunu: form.askerlikBorclanlmasi,
-        askerlikNedir: form.askerlikNedir,
-        malulukTuru,
-        derece: form.malulDerece || null,
-        malulTarihi: null,
-        bagimaMuhtac: form.bagimaMuhtac,
-        lawType: '5510',
-      });
-      
-      // Sonuçları birleştir: 
-      // - Normal ve age kuralları 5434'ten (aynı, duplicate'i engelle)
-      // - Disability kuralları her iki kanundan (farklı olabilir)
-      const disability5434 = results5434.filter(r => r.type === 'disability');
-      const disability5510 = results5510.filter(r => r.type === 'disability');
-      const normal = results5434.filter(r => r.type === 'normal');
-      const age = results5434.filter(r => r.type === 'age');
-      
-      results = [...disability5434, ...disability5510, ...normal, ...age];
     } else {
       // 4c değil veya malülük seçilmemişse normal şekilde hesapla
       results = calculateRetirementOptionsDB({
