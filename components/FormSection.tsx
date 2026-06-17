@@ -13,6 +13,7 @@ interface FormSectionProps {
     malulBirimi?: string;
     malulDerece?: string;
     bagimaMuhtac?: boolean;
+    lawType?: '5434' | '5510';
   };
   hesaplananIlkIsGirisTarihi?: string;
   errors: Record<string, string>;
@@ -23,6 +24,7 @@ interface FormSectionProps {
   onMalulDereceChange?: (derece: string) => void;
   onBagimaMuhtacChange?: (value: boolean) => void;
   onBorclanmaDahilChange: (dahil: boolean) => void;
+  onLawTypeChange?: (lawType: '5434' | '5510') => void;
   onHesapla: () => void;
   onTemizle: () => void;
 }
@@ -31,9 +33,10 @@ export default function FormSection({
   form, hesaplananIlkIsGirisTarihi, errors,
   onFormChange, onCheckbox, onAskerlikChange,
   onMalulBirimiChange, onMalulDereceChange,
-  onBagimaMuhtacChange, onBorclanmaDahilChange, onHesapla, onTemizle,
+  onBagimaMuhtacChange, onBorclanmaDahilChange, onLawTypeChange, onHesapla, onTemizle,
 }: FormSectionProps) {
   const statu = form.statular[0];
+  const lawType = form.lawType || '5510';
 
   return (
     <div className="card overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
@@ -72,18 +75,63 @@ export default function FormSection({
             Malüllük / Engellilik <span className="text-gray-400 font-normal">(5510 SK Md.28)</span>
           </p>
 
+          {/* 4c için kanun seçimi: 5434 (eski Emekli Sandığı) / 5510 (yeni memur) */}
+          {statu === '4c' && (
+            <div className="mb-2">
+              <p className="text-xs text-purple-700 mb-1">Hangi kanuna göre değerlendirilsin?</p>
+              <div className="grid grid-cols-2 gap-1">
+                {[
+                  { value: '5434' as const, label: '5434 (Emekli Sandığı)' },
+                  { value: '5510' as const, label: '5510 (Memur)' },
+                ].map((l) => (
+                  <label key={l.value} className={`flex items-center justify-center gap-1 cursor-pointer px-2 py-1.5 rounded-lg border text-xs transition-all ${
+                    lawType === l.value
+                      ? 'bg-purple-600 text-white border-purple-600 font-semibold'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
+                  }`}>
+                    <input type="radio" name="lawType" value={l.value}
+                      checked={lawType === l.value}
+                      onChange={() => onLawTypeChange?.(l.value)}
+                      className="sr-only" />
+                    {l.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {['4a', '4b', '4c', '2925'].includes(statu) ? (
             <>
               <select value={form.malulBirimi || 'yok'}
                 onChange={(e) => onMalulBirimiChange(e.target.value)}
                 className="input-field mb-2">
                 <option value="yok">— Malül değilim —</option>
-                <option value="sk28/4">
-                  {statu === '4c' ? '27.04.2005 öncesi Engelli (yaşsız)' : 'Md.28/4 — İlk işe girişte malül (yaşsız)'}
-                </option>
-                <option value="sk28/5">
-                  {statu === '4c' ? '27.04.2005 sonrası Engelli (dereceli)' : 'Md.28/5 — Sonradan malül (dereceli)'}
-                </option>
+
+                {/* 4c / 5434: işe giriş öncesi yaşsız + 5434 adi malullük */}
+                {statu === '4c' && lawType === '5434' && (
+                  <>
+                    <option value="sk28/4">27.04.2005 öncesi Engelli (yaşsız)</option>
+                    <option value="sk28/5">27.04.2005 sonrası Engelli (dereceli — +%40/%50-59/%40-49)</option>
+                    <option value="adiMalullük">5434 Adi Malullük (657 m.105 — 10 yıl/3600 gün)</option>
+                  </>
+                )}
+
+                {/* 4c / 5510: 4b ile aynı sabit kurallar + M25 */}
+                {statu === '4c' && lawType === '5510' && (
+                  <>
+                    <option value="sk28/4">Md.28/4 — Ağır düzey +%60 (yaşsız, 15 yıl/3960 gün)</option>
+                    <option value="sk28/5">Md.28/5 — Sonradan malül (dereceli — %50-59/%40-49)</option>
+                    <option value="m25">Md.25 — İşe giriş sonrası +%60 malüllük (10 yıl/1800 gün)</option>
+                  </>
+                )}
+
+                {/* 4a, 4b, 2925 */}
+                {statu !== '4c' && (
+                  <>
+                    <option value="sk28/4">Md.28/4 — İlk işe girişte malül (yaşsız)</option>
+                    <option value="sk28/5">Md.28/5 — Sonradan malül (dereceli)</option>
+                  </>
+                )}
               </select>
 
               {form.malulBirimi === 'sk28/5' && (
@@ -91,9 +139,19 @@ export default function FormSection({
                   <select value={form.malulDerece || ''} onChange={(e) => onMalulDereceChange?.(e.target.value)}
                     className="input-field">
                     <option value="">— Engel derecesi seçin —</option>
-                    <option value="%40-%49">%40–%49 (Hafif)</option>
-                    <option value="%50-%59">%50–%59 (Orta)</option>
-                    <option value="%60+">%60+ (Ağır)</option>
+                    {statu === '4c' && lawType === '5434' ? (
+                      <>
+                        <option value="+%40">+%40 (İşe Giriş Öncesi)</option>
+                        <option value="%50-%59">%50–%59 (Orta)</option>
+                        <option value="%40-%49">%40–%49 (Hafif)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="%40-%49">%40–%49 (Hafif)</option>
+                        <option value="%50-%59">%50–%59 (Orta)</option>
+                        <option value="%60+">%60+ (Ağır)</option>
+                      </>
+                    )}
                   </select>
                   {errors.malulDerece && <p className="text-xs text-red-600">{errors.malulDerece}</p>}
 
@@ -111,6 +169,20 @@ export default function FormSection({
                     </label>
                   )}
                 </div>
+              )}
+
+              {form.malulBirimi === 'm25' && (
+                <label className="flex items-start gap-2 cursor-pointer p-2 bg-red-50 border border-red-200 rounded-lg mt-2">
+                  <input type="checkbox" checked={form.bagimaMuhtac || false}
+                    onChange={(e) => onBagimaMuhtacChange?.(e.target.checked)}
+                    className="w-3.5 h-3.5 mt-0.5 text-red-600 shrink-0" />
+                  <span className="text-xs text-gray-700">
+                    <strong>Bakıma muhtaç</strong>
+                    <span className="block text-gray-500 mt-0.5">
+                      Başkasının yardımına muhtaç olduğunuz sağlık kurulu raporu ile belirlenmişse — 10 yıl hizmet şartı aranmaz
+                    </span>
+                  </span>
+                </label>
               )}
             </>
           ) : null}
@@ -187,13 +259,13 @@ export default function FormSection({
       </div>
 
       {/* HESAPLA + TEMİZLE */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
         <button onClick={onHesapla}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-md text-sm">
           Hesapla →
         </button>
         <button onClick={onTemizle}
-          className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2.5 rounded-lg transition-all shadow-md text-sm">
+          className="bg-gray-400 hover:bg-gray-500 text-white font-medium py-1.5 rounded-lg transition-all shadow-sm text-xs">
           Temizle ✕
         </button>
       </div>
