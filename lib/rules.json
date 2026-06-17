@@ -1459,6 +1459,18 @@
         "degree": "%40-%49",
         "malulukType": "sk285",
         "note": "5434 — 1988-2003: 15 yıl + 6480 gün"
+      },
+      {
+        "name": "5510 SK 28/4-40 — İşe girmeden Engelli (+%40) — 2004/05/27 öncesi",
+        "dateFrom": "1988-06-19",
+        "dateTo": "2004-05-26",
+        "days": 5400,
+        "ageWoman": null,
+        "ageMan": null,
+        "serviceYears": 15,
+        "degree": "+%40",
+        "malulukType": "sk284",
+        "note": "SK 28/4-40 — 2004-05-27 öncesi: 15 yıl, 5400 gün"
       }
     ]
   },
