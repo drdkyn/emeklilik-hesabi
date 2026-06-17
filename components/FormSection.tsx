@@ -123,7 +123,7 @@ export default function FormSection({
                 {statu === '4c' && lawType === '5510' && (
                   <>
                     <option value="sk28/4">Md.28/4 — İlk işe girişte malül %60 ve üstü</option>
-                    <option value="sk28/5">Md.28/5 — Sonradan malül (dereceli — %50-59/%40-49)</option>
+                    <option value="sk28/5">Md.28/5 — Malül/Engelli (dereceli — %50-59/%40-49)</option>
                     <option value="m25">Md.25 — İşe giriş sonrası +%60 malüllük (10 yıl/1800 gün)</option>
                   </>
                 )}
@@ -132,7 +132,7 @@ export default function FormSection({
                 {statu !== '4c' && (
                   <>
                     <option value="sk28/4">Md.28/4 — İlk işe girişte malül %60 ve üstü</option>
-                    <option value="sk28/5">Md.28/5 — Sonradan malül (dereceli)</option>
+                    <option value="sk28/5">Md.28/5 — Malül/Engelli (dereceli)</option>
                   </>
                 )}
               </select>
