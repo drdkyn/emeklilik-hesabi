@@ -114,17 +114,14 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
 
     const reqService = extraServiceYears !== undefined ? extraServiceYears : rule.serviceYears;
     
-    // Hizmet yılını SADECE ŞART VARSA göster
-    // 18 yaştan hesaplanan hizmet varsa onu göster, yoksa gerçek hizmet yılını göster
-    const displayService = extraServiceYears !== undefined ? extraServiceYears : serviceYears;
-    
+    // Hizmet yılı ŞART VARSA: göster
     if (reqService !== null && reqService !== undefined) {
-      // Şart varsa: göster ve uygunluğa ekle
+      const displayService = extraServiceYears !== undefined ? extraServiceYears : serviceYears;
       const hizmetOk = displayService >= reqService;
       kosullar.push({ ad: 'Hizmet Yılı', gerekli: `${reqService}`, sahip: `${displayService}`, basarili: hizmetOk });
       uygun = uygun && hizmetOk;
     }
-    // Şart yoksa: gösterilmez
+    // ŞART YOKSA: gösterilmez
 
     return { kosullar, uygun };
   }
@@ -173,6 +170,29 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
       
       const { kosullar, uygun } = buildKosullar(rule, effectiveServiceYears);
       results.push({ name: rule.name, type: 'age', uygun, kosullar });
+      break; // giriş tarihine uyan ilk kural
+    }
+  }
+
+  // ---- MALÜLLÜK ----
+  if (statusRules.disability) {
+    for (const rule of statusRules.disability) {
+      if (!isGecerli(rule)) continue;
+      
+      // 4a'da 18 yaş altı girişler için her kuralda hizmet yılını 18 yaştan hesapla
+      let effectiveServiceYears = undefined;
+      if (status === '4a') {
+        const ageAt18 = new Date(dogumTarihi);
+        ageAt18.setFullYear(ageAt18.getFullYear() + 18);
+        
+        if (ilkGirisTarihi < ageAt18) {
+          // 18 yaşından önce girmişse, 18 yaştan hizmet sayıldı
+          effectiveServiceYears = calculateServiceYears(ageAt18, today);
+        }
+      }
+      
+      const { kosullar, uygun } = buildKosullar(rule, effectiveServiceYears);
+      results.push({ name: rule.name, type: 'disability', uygun, kosullar, notlar: rule.notes });
       break; // giriş tarihine uyan ilk kural
     }
   }

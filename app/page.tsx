@@ -186,7 +186,7 @@ export default function Home() {
       (today.getMonth() === ilkGirisTarihi.getMonth() && today.getDate() < ilkGirisTarihi.getDate())) hizmetYili--;
     
     // 4a'da 18 yaş altı girişler için hizmet yılını 18 yaştan hesapla
-    if ((form as any).sigortalilikDurumu === '4a') {
+    if (status === '4a') {
       const ageAt18 = new Date(dogumTarihi);
       ageAt18.setFullYear(ageAt18.getFullYear() + 18);
       
@@ -210,13 +210,13 @@ export default function Home() {
     }, 100);
   };
 
-  // Sonuçları sırala: Normal, Yaşlılık
+  // Sonuçları sırala: Normal, Yaştan, Malüllük
   // Hepsi gösterilir — uygun olanlar yeşil, uygun olmayanlar sarı
   const siraliSonuclar = sonuclar ? (() => {
     const normal = sonuclar.filter(s => s.type === 'normal');
     const age = sonuclar.filter(s => s.type === 'age');
-    return [...normal, ...age];
-    return [...normal, ...age];
+    const disability = sonuclar.filter(s => s.type === 'disability');
+    return [...normal, ...age, ...disability];
   })() : [];
 
   const uygunSayisi = siraliSonuclar.filter(s => s.uygun).length;
