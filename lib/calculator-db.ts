@@ -115,14 +115,17 @@ export function calculateRetirementOptionsDB(input: RetirementInput): Retirement
     const reqService = extraServiceYears !== undefined ? extraServiceYears : rule.serviceYears;
     
     // Hizmet yılını HER ZAMAN göster
+    // 18 yaştan hesaplanan hizmet varsa onu göster, yoksa gerçek hizmet yılını göster
+    const displayService = extraServiceYears !== undefined ? extraServiceYears : serviceYears;
+    
     if (reqService !== null && reqService !== undefined) {
       // Şart varsa: göster ve uygunluğa ekle
-      const hizmetOk = serviceYears >= reqService;
-      kosullar.push({ ad: 'Hizmet Yılı', gerekli: `${reqService}`, sahip: `${serviceYears}`, basarili: hizmetOk });
+      const hizmetOk = displayService >= reqService;
+      kosullar.push({ ad: 'Hizmet Yılı', gerekli: `${reqService}`, sahip: `${displayService}`, basarili: hizmetOk });
       uygun = uygun && hizmetOk;
     } else {
       // Şart yoksa: sadece göster, uygunluğa ekleme
-      kosullar.push({ ad: 'Hizmet Yılı', gerekli: '-', sahip: `${serviceYears}`, basarili: true });
+      kosullar.push({ ad: 'Hizmet Yılı', gerekli: '-', sahip: `${displayService}`, basarili: true });
     }
 
     return { kosullar, uygun };
